@@ -13,6 +13,8 @@ from math import floor, ceil
 import matplotlib.pyplot as pl, matplotlib.cm as cm
 from matplotlib.widgets import  RectangleSelector
 
+from optv.tracking_framebuf import TargetArray
+
 def onselect(eclick, erelease, im, rects, tiles):
     xs = np.sort(np.r_[eclick.xdata, erelease.xdata])
     ys = np.sort(np.r_[eclick.ydata, erelease.ydata])
@@ -57,6 +59,24 @@ def template_match(image, template):
     corr = signal.fftconvolve(image - image.mean(), tmpl, mode='same')
     y, x = np.unravel_index(np.argmax(corr), corr.shape)
     return x, y
+
+def record_target(targ, targ_num, tmpl, centroid):
+    """
+    Put all template-matching results into a Target object.
+    
+    Arguments:
+    targ - a Target object having the storage space.
+    targ_num - target number in frame.
+    tmpl - the matched template, a 2D grey image array.
+    centroid - the position of center of match.
+    """
+    nx, ny = tmpl.shape
+    
+    targ.set_pos(centroid)
+    targ.set_pnr(0)
+    targ.set_tnr(-1)
+    targ.set_pixel_counts(nx*ny, nx, ny)
+    targ.set_sum_grey_value(tmpl.sum())
     
 # First mark each in turn:
 num_cams = 4
@@ -72,7 +92,10 @@ for cam in xrange(num_cams):
     im = pl.imread('data/20150714/dumbbell_end/cam%d.3136' % (cam + 1))
     pl.imshow(im, cmap=cm.gray)
     
+    targs = TargetArray(2)
+    
     x, y = template_match(im, templates[cam][0])
+    record_target(targs[0], 0, templates[cam][0], (x,y))
     pl.plot(x, y, 'ro')
     print cam, x, y
     
@@ -82,8 +105,11 @@ for cam in xrange(num_cams):
     im_blanked[y - h/2 : y + h/2, x - w/2 : x + w/2] = 0
     
     x, y = template_match(im_blanked, templates[cam][1])
+    record_target(targs[1], 1, templates[cam][1], (x,y))
     pl.plot(x, y, 'ro')
     print cam, x, y
+    
+    targs.write('data/20150714/dumbbell_end/cam%d.' % (cam + 1), 3136)
     
     pl.axis('tight')
     pl.axis('off')
