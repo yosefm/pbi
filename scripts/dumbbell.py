@@ -2,7 +2,7 @@
 """
 Guided recognition of dumbbell targets.
 
-Loosely based on the MAtlab version from Alex et al. here:
+Loosely based on the Matlab version from Alex et al. here:
 https://bitbucket.org/alexliberzonlab/ptv_postproc/src/106a97675479ad9afa95a1837bb5a6f9ff7de024/Matlab/?at=master
 Files: tau_dumbbell_detection_db_y1.m and those called from within.
 """
