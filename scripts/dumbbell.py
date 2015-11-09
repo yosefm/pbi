@@ -13,7 +13,7 @@ from math import floor, ceil
 import matplotlib.pyplot as pl, matplotlib.cm as cm
 from matplotlib.widgets import  RectangleSelector
 
-from optv.tracking_framebuf import TargetArray
+from optv.tracking_framebuf import TargetArray, read_targets
 
 def onselect(eclick, erelease, im, rects, tiles):
     xs = np.sort(np.r_[eclick.xdata, erelease.xdata])
@@ -77,6 +77,35 @@ def record_target(targ, targ_num, tmpl, centroid):
     targ.set_tnr(-1)
     targ.set_pixel_counts(nx*ny, nx, ny)
     targ.set_sum_grey_value(tmpl.sum())
+
+def process_image(image_path, templates, targets_path, targets_frame):
+    """
+    Do double template matching for one image, with the necessary recording
+    and I/O necessary.
+    
+    Arguments:
+    image_path - path to processed image file.
+    templates - a sequence of two images, each serves as one template to match
+        against the opened image.
+    targets_path - base path of output targets file. Will be used to compose 
+        the output file name.
+    targets_frame - the output file name is <targets_path><targets_frame>_targets.
+    """
+    im = pl.imread(image_path)
+    targs = TargetArray(2)
+    
+    pos = template_match(im, templates[0])
+    record_target(targs[0], 0, templates[0], pos)
+    
+    # Blank out the first find in case it is similar to the second template.
+    h, w = templates[0].shape
+    im_blanked = im.copy()
+    im_blanked[pos[1] - h/2 : pos[1] + h/2, pos[0] - w/2 : pos[0] + w/2] = 0
+    
+    pos = template_match(im_blanked, templates[1])
+    record_target(targs[1], 1, templates[1], pos)
+    
+    targs.write(targets_path, targets_frame)
     
 # First mark each in turn:
 num_cams = 4
@@ -88,28 +117,18 @@ for cam in xrange(num_cams):
 # Then show all marks in one plot.
 pl.figure(figsize=(15,15))
 for cam in xrange(num_cams):
+    tpath = 'data/20150714/dumbbell_end/cam%d.'
+    frame = 3136
+    process_image('data/20150714/dumbbell_end/cam%d.3136' % (cam + 1), 
+        templates[cam], tpath, frame)
+
     pl.subplot(2, 2, cam + 1)
     im = pl.imread('data/20150714/dumbbell_end/cam%d.3136' % (cam + 1))
     pl.imshow(im, cmap=cm.gray)
     
-    targs = TargetArray(2)
-    
-    x, y = template_match(im, templates[cam][0])
-    record_target(targs[0], 0, templates[cam][0], (x,y))
-    pl.plot(x, y, 'ro')
-    print cam, x, y
-    
-    # Blank out the first find in case it is similar to the second template.
-    h, w = templates[cam][0].shape
-    im_blanked = im.copy()
-    im_blanked[y - h/2 : y + h/2, x - w/2 : x + w/2] = 0
-    
-    x, y = template_match(im_blanked, templates[cam][1])
-    record_target(targs[1], 1, templates[cam][1], (x,y))
-    pl.plot(x, y, 'ro')
-    print cam, x, y
-    
-    targs.write('data/20150714/dumbbell_end/cam%d.' % (cam + 1), 3136)
+    targs = read_targets(tpath, frame)
+    pl.plot(targs[0].pos()[0], targs[0].pos()[1], 'ro')
+    pl.plot(targs[1].pos()[0], targs[1].pos()[1], 'ro')
     
     pl.axis('tight')
     pl.axis('off')
