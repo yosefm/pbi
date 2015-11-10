@@ -8,7 +8,7 @@ Files: tau_dumbbell_detection_db_y1.m and those called from within.
 """
 import numpy as np
 from scipy import signal
-from math import floor, ceil
+from math import floor, ceil, sqrt
 
 import matplotlib.pyplot as pl, matplotlib.cm as cm
 from matplotlib.widgets import  RectangleSelector
@@ -106,7 +106,57 @@ def process_image(image_path, templates, targets_path, targets_frame):
     record_target(targs[1], 1, templates[1], pos)
     
     targs.write(targets_path, targets_frame)
+
+def process_frame(image_tmpl, templates, targets_tmpl, frame_num, cam_count):
+    """
+    Write targets found by template-matching for all cameras in a frame.
     
+    Arguments:
+    image_tmpl - a format string with two integer places. The first is replaced
+        with camera number, the second with frame number.
+    templates - a list, For each camera, a sequence of two images, each serves 
+        as one template to match against the opened image.
+    targets_tmpl - Format string with one int specifier. base path of output 
+        targets file. Will be used to compose the output file name. The int 
+        specifier is replaced with camera number.
+    frame_num - frame number.
+    cam_count - number of cameras in scene.
+    """
+    for cam in xrange(cam_count):
+        tpath = targets_tmpl % (cam + 1)
+        ipath = image_tmpl % (cam + 1, frame_num)
+        process_image(ipath, templates[cam], tpath, frame_num)
+
+def show_frame(image_tmpl, targets_tmpl, frame_num, cam_count):
+    """
+    Creates a figure with subplots for each camera, showing the targets read 
+    for that camera on top of the seen image.
+    
+    Arguments:
+    image_tmpl - a format string with two integer places. The first is replaced
+        with camera number, the second with frame number.
+    targets_tmpl - Format string with one int specifier. base path of input 
+        targets file. Will be used to compose the output file name. The int 
+        specifier is replaced with camera number.
+    frame_num - frame number.
+    cam_count - number of cameras in scene.
+    """
+    pl.figure(figsize=(15,15))
+    vert_plots = floor(sqrt(cam_count))
+    horz_plots = cam_count/vert_plots
+    
+    for cam in xrange(cam_count):
+        pl.subplot(vert_plots, horz_plots, cam + 1)
+        im = pl.imread(image_tmpl % (cam + 1, frame_num))
+        pl.imshow(im, cmap=cm.gray)
+        
+        targs = read_targets(targets_tmpl % (cam + 1), frame_num)
+        pl.plot(targs[0].pos()[0], targs[0].pos()[1], 'ro')
+        pl.plot(targs[1].pos()[0], targs[1].pos()[1], 'ro')
+    
+    pl.axis('tight')
+    pl.axis('off')
+
 # First mark each in turn:
 num_cams = 4
 templates = []
@@ -114,23 +164,9 @@ for cam in xrange(num_cams):
     r, t = mark_image('data/20150714/dumbbell_end/cam%d.3136' % (cam + 1))
     templates.append(t)
 
-# Then show all marks in one plot.
-pl.figure(figsize=(15,15))
-for cam in xrange(num_cams):
-    tpath = 'data/20150714/dumbbell_end/cam%d.'
-    frame = 3136
-    process_image('data/20150714/dumbbell_end/cam%d.3136' % (cam + 1), 
-        templates[cam], tpath, frame)
-
-    pl.subplot(2, 2, cam + 1)
-    im = pl.imread('data/20150714/dumbbell_end/cam%d.3136' % (cam + 1))
-    pl.imshow(im, cmap=cm.gray)
-    
-    targs = read_targets(tpath, frame)
-    pl.plot(targs[0].pos()[0], targs[0].pos()[1], 'ro')
-    pl.plot(targs[1].pos()[0], targs[1].pos()[1], 'ro')
-    
-    pl.axis('tight')
-    pl.axis('off')
+process_frame("data/20150714/dumbbell_end/cam%d.%d", templates, 
+    "data/20150714/dumbbell_end/cam%d.", 3136, num_cams)
+show_frame("data/20150714/dumbbell_end/cam%d.%d", 
+    "data/20150714/dumbbell_end/cam%d.", 3136, num_cams)
     
 pl.show()
