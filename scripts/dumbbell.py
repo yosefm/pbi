@@ -157,16 +157,30 @@ def show_frame(image_tmpl, targets_tmpl, frame_num, cam_count):
     pl.axis('tight')
     pl.axis('off')
 
-# First mark each in turn:
-num_cams = 4
-templates = []
-for cam in xrange(num_cams):
-    r, t = mark_image('data/20150714/dumbbell_end/cam%d.3136' % (cam + 1))
-    templates.append(t)
-
-process_frame("data/20150714/dumbbell_end/cam%d.%d", templates, 
-    "data/20150714/dumbbell_end/cam%d.", 3136, num_cams)
-show_frame("data/20150714/dumbbell_end/cam%d.%d", 
-    "data/20150714/dumbbell_end/cam%d.", 3136, num_cams)
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('tmpl', type=str, 
+        help="Name template - a format string with two integer places, " + \
+        "the first for camera number and the second for frame number.")
+    parser.add_argument('targ_tmpl', type=str, 
+        help="Targets template - a format string with one integer place, " + \
+        "for camera number. Used to make output file names")    
+    parser.add_argument('first', type=int, help="First frame number")
+    parser.add_argument('last', type=int, help="Last frame number")
+    parser.add_argument('--cams', '-c', type=int, default=4, 
+        help="Number of cameras in scene")
+    args = parser.parse_args()
     
-pl.show()
+    # First mark each in turn:
+    templates = []
+    for cam in xrange(args.cams):
+        r, t = mark_image(args.tmpl % (cam + 1, args.first))
+        templates.append(t)
+    show_frame(args.tmpl, args.targ_tmpl, args.first, args.cams)
+    pl.show()
+    
+    for frame in xrange(args.first, args.last + 1):
+        process_frame(args.tmpl, templates, args.targ_tmpl, frame, args.cams)
+    
