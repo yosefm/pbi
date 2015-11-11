@@ -158,6 +158,8 @@ def show_frame(image_tmpl, targets_tmpl, frame_num, cam_count):
     pl.axis('off')
 
 if __name__ == "__main__":
+    import threading
+    
     import argparse
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -181,6 +183,17 @@ if __name__ == "__main__":
     show_frame(args.tmpl, args.targ_tmpl, args.first, args.cams)
     pl.show()
     
+    active = []
+    max_active = 6
     for frame in xrange(args.first, args.last + 1):
-        process_frame(args.tmpl, templates, args.targ_tmpl, frame, args.cams)
+        t = threading.Thread(target=process_frame, 
+            args=(args.tmpl, templates, args.targ_tmpl, frame, args.cams))
+        t.start()
+        active.append(t)
+        
+        if len(active) == max_active:
+            active[0].join()
+            active.pop(0)
     
+    for t in active:
+        t.join()
