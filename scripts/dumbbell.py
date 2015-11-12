@@ -216,6 +216,8 @@ if __name__ == "__main__":
         help="Number of cameras in scene")
     parser.add_argument('--full', action='store_true', default=False,
         help="Match full image rather than the area following the target.")
+    parser.add_argument('--threads', type=int, default=6, 
+        help="Max. number of concurrent worker threads.")
     
     parser.add_argument('--cache-file', '-f', type=str, 
         help="Save initial positions to this file.")
@@ -257,7 +259,6 @@ if __name__ == "__main__":
     # Start one thread per frame. Keep a maximum of live threads and add one
     # new job each time a job is finished.
     active = []
-    max_active = 6
     for frame in xrange(args.first, args.last + 1):
         arglist = (args.tmpl, templates, args.targ_tmpl, frame, args.cams)
         if not args.full:
@@ -267,7 +268,7 @@ if __name__ == "__main__":
         t.start()
         active.append(t)
         
-        if len(active) == max_active:
+        if len(active) == args.threads:
             active[0].join()
             active.pop(0)
     
