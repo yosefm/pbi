@@ -211,24 +211,48 @@ if __name__ == "__main__":
         "for camera number. Used to make output file names")    
     parser.add_argument('first', type=int, help="First frame number")
     parser.add_argument('last', type=int, help="Last frame number")
+    
     parser.add_argument('--cams', '-c', type=int, default=4, 
         help="Number of cameras in scene")
     parser.add_argument('--full', action='store_true', default=False,
         help="Match full image rather than the area following the target.")
+    
+    parser.add_argument('--cache-file', '-f', type=str, 
+        help="Save initial positions to this file.")
+    parser.add_argument('--positions', '-p', type=str,
+        help="Load premarked positions from this file.")
     args = parser.parse_args()
     
-    # First mark each in turn:
+    # Initialize search regions, either by loading or graphically marking:
     templates = []
     rects = []
+    if args.positions is not None:
+        premarks = np.loadtxt(args.positions)
+        
     for cam in xrange(args.cams):
-        r, t = mark_image(args.tmpl % (cam + 1, args.first))
+        if args.positions is None:
+            r, t = mark_image(args.tmpl % (cam + 1, args.first))
+        else:
+            r = premarks[2*cam:2*(cam + 1)]
+            r = [r[0], r[1]]
+            
+            image = pl.imread(args.tmpl % (cam + 1, args.first))
+            t = [
+                image[r[0][1]:r[0][3], r[0][0]:r[0][2]],
+                image[r[1][1]:r[1][3], r[1][0]:r[1][2]],
+            ]
+        
         templates.append(t)
         rects.append(r)
     
-    process_frame(args.tmpl, templates, args.targ_tmpl, args.first, args.cams,
-        None if args.full else rects)
-    show_frame(args.tmpl, args.targ_tmpl, args.first, args.cams)
-    pl.show()
+    if args.cache_file is not None:
+        np.savetxt(args.cache_file, np.array(rects).reshape(-1,4))
+    
+    if args.positions is None:
+        process_frame(args.tmpl, templates, args.targ_tmpl, args.first, args.cams,
+            None if args.full else rects)
+        show_frame(args.tmpl, args.targ_tmpl, args.first, args.cams)
+        pl.show()
     
     # Start one thread per frame. Keep a maximum of live threads and add one
     # new job each time a job is finished.
