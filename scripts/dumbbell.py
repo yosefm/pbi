@@ -5,6 +5,15 @@ Guided recognition of dumbbell targets.
 Loosely based on the Matlab version from Alex et al. here:
 https://bitbucket.org/alexliberzonlab/ptv_postproc/src/106a97675479ad9afa95a1837bb5a6f9ff7de024/Matlab/?at=master
 Files: tau_dumbbell_detection_db_y1.m and those called from within.
+
+Innovations in this code:
+1. Template matching is done on a search region around the marked target rather
+   than on the whole image. The search region is continuously updated to follow
+   the found targets.
+2. Multithreaded processing reduces real time, although due to Python's GIL 
+   it's not as fast as it could be.
+
+Author: Yosef Meller.
 """
 import numpy as np
 from scipy import signal
