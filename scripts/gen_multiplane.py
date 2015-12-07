@@ -80,7 +80,7 @@ if __name__ == "__main__":
             # Template files for the singe camera/plane calibrations: 
             # ori, addpar,
             ori_tmpl = os.path.join(path, "%s%d.tif.ori")
-            addpar_tmpl = os.path.join(path, "%s%d.tif.ori")
+            addpar_tmpl = os.path.join(path, "%s%d.tif.addpar")
             
             shutil.copy(ori_tmpl % (args.central, cam), 
                 ori_tmpl % (plane, cam))
