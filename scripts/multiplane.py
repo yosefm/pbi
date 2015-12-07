@@ -10,7 +10,7 @@ Created on Sun Nov 29 14:34:12 2015
 """
 
 if __name__ == "__main__":
-    import argparse, yaml, numpy as np
+    import sys, argparse, yaml, numpy as np
     from calib import full_calibration
     
     from optv.tracking_framebuf import TargetArray
@@ -22,6 +22,8 @@ if __name__ == "__main__":
     parser.add_argument('config', help="Path to configuration YAML file.")
     parser.add_argument('--dry-run', '-d', action='store_true', default=False,
         help="Don't overwrite ori/addpar files with results.")
+    parser.add_argument('--renum', '-r', action='store_true', default=False,
+        help="Rewrite the fix/crd files renumbered and stop.")
     args = parser.parse_args()
     
     yaml_args = yaml.load(file(args.config))
@@ -42,8 +44,18 @@ if __name__ == "__main__":
             " number of known points (%d) for %s, %s" % \
             (num_known, num_detect, plane['known'],  plane['detected']))
         
+        # Only renumber, for PyPTV compatibility:
+        if args.renum and len(all_known) > 0:
+            known[:,0] = all_known[-1][-1,0] + 1 + np.arange(len(known))
+            detected[:,0] = all_detected[-1][-1,0] + 1 + np.arange(len(detected))
+            np.savetxt(plane['known'], known, fmt="%10.5f")
+            np.savetxt(plane['detected'], detected, fmt="%9.5f")
+
         all_known.append(known)
         all_detected.append(detected)
+    
+    if args.renum:
+        sys.exit(0)
     
     # Make into the format needed for full_calibration.
     all_known = np.vstack(all_known)[:,1:]
@@ -54,7 +66,7 @@ if __name__ == "__main__":
         targ = targs[tix]
         det = all_detected[tix]
         
-        targ.set_pnr(det[0])
+        targ.set_pnr(tix)
         targ.set_pos(det[1:])
     
     # Load ori files and whatever else is needed over the point sets.
