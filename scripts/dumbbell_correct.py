@@ -45,7 +45,7 @@ def control_params(**control_args):
     
     return control
 
-def calib_convergence(calib_vec, targets, calibs, cpar):
+def calib_convergence(calib_vec, targets, calibs, active_cams, cpar):
     """
     Mediated the ray_convergence function and the parameter format used by 
     SciPy optimization routines, by taking a vector of variable calibration
@@ -59,13 +59,23 @@ def calib_convergence(calib_vec, targets, calibs, cpar):
         cameras.
     calibs - an array of per-camera Calibration objects. The permanent fields 
         are retained, the variable fields get overwritten.
+    active_cams - a sequence of True/False values stating whether the 
+        corresponding camera is free to move or just a parameter.
+    cpar - a ControlParams object describing the overall setting.
     
     Returns:
     The ray convergence measure.
     """
-    calib_pars = calib_vec.reshape(len(calibs), 2, 3)
+    calib_pars = calib_vec.reshape(-1, 2, 3)
     
-    for cal, pars in zip(calibs, calib_pars):
+    for cam, cal in enumerate(calibs):
+        if not active_cams[cam]:
+            continue
+        
+        # Pop a parameters line:
+        pars = calib_pars[0]
+        calib_pars = calib_pars[1:]
+        
         cal.set_pos(pars[0])
         cal.set_angles(pars[1])
     
@@ -91,10 +101,14 @@ if __name__ == "__main__":
     # the optimizer's target function.
     cal_args = yaml_args['initial']
     calibs = []
+    active = []
+    
     for cam_data in cal_args:
         cl = Calibration()
         cl.from_file(cam_data['ori_file'], cam_data['addpar_file'])
+        
         calibs.append(cl)
+        active.append(cam_data['free'])
     
     scene_args = yaml_args['scene']
     scene_args['cam'] = len(cal_args)
@@ -114,10 +128,13 @@ if __name__ == "__main__":
     assert(all_targs.shape[0] == 4 and all_targs.shape[2] == 2)
     
     # Generate initial guess vector and bounds for optimization:
-    calib_vec = np.empty((len(cal_args), 2, 3))
+    num_active = np.sum(active)
+    calib_vec = np.empty((num_active, 2, 3))
+    active_ptr = 0
     for cam in xrange(len(cal_args)):
-        calib_vec[cam,0] = calibs[cam].get_pos()
-        calib_vec[cam,1] = calibs[cam].get_angles()
+        if active[cam]:
+            calib_vec[active_ptr,0] = calibs[cam].get_pos()
+            calib_vec[active_ptr,1] = calibs[cam].get_angles()
         
         # Positions within a neighbourhood of the initial guess, so we don't 
         # converge to the trivial solution where all cameras are in the same 
@@ -125,10 +142,12 @@ if __name__ == "__main__":
     calib_vec = calib_vec.flatten()
         
     # Test optimizer-ready target function:
-    print calib_convergence(calib_vec, all_targs, calibs, cpar)
+    print calib_vec
+    print calib_convergence(calib_vec, all_targs, calibs, active, cpar)
     
     # Optimization:
-    res = minimize(calib_convergence, calib_vec, (all_targs, calibs, cpar),
+    res = minimize(calib_convergence, calib_vec, 
+                   args=(all_targs, calibs, active, cpar), tol=5,
                    options={'maxiter': 2000})
     print res.x, res.success, res.message
-    print calib_convergence(res.x, all_targs, calibs, cpar)
+    print calib_convergence(res.x, all_targs, calibs, active, cpar)
