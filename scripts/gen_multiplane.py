@@ -5,8 +5,6 @@ Created on Tue Dec  1 14:34:30 2015
 @author: yosef
 """
 
-path = 'cal_single'
-
 single_yaml = """
 target:
     image: {path}/{plane}{cam}.tif
@@ -43,6 +41,8 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
         usage="Assumes symmetric planes around central.")
+    parser.add_argument('--output', '-o', default="cal_mp",
+        help="directory path for generated files")
     parser.add_argument('--num-cams', '-n', type=int, default=4)
     parser.add_argument('--points-file', '-p', default='points.txt',
         help="Table of known points position (calblock)")
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         help="Names of added planes, in order from -Z to +Z.")
     args = parser.parse_args()
     
-    known_points = np.loadtxt(os.path.join(path, args.points_file))
+    known_points = np.loadtxt(os.path.join(args.output, args.points_file))
     
     # Shifts discard the central plane which is assumed to exist.
     each_side = len(args.planes)/2 # integer division
@@ -67,20 +67,21 @@ if __name__ == "__main__":
         # needed for generating the fix/crd point files.
         for camn in xrange(args.num_cams):
             cam = camn + 1
-            fname = os.path.join(path, "%s%d.yaml" % (plane, cam))
+            fname = os.path.join(args.output, "%s%d.yaml" % (plane, cam))
         
             if os.path.exists(fname) and not args.clobber:
                 continue
         
-            cfg = single_yaml.format(path=path, camn=camn, cam=cam, plane=plane)
+            cfg = single_yaml.format(path=args.output, camn=camn, cam=cam, 
+                plane=plane)
             cfg_file = open(fname, 'w')
             cfg_file.write(cfg)
             cfg_file.close()
     
             # Template files for the singe camera/plane calibrations: 
             # ori, addpar,
-            ori_tmpl = os.path.join(path, "%s%d.tif.ori")
-            addpar_tmpl = os.path.join(path, "%s%d.tif.addpar")
+            ori_tmpl = os.path.join(args.output, "%s%d.tif.ori")
+            addpar_tmpl = os.path.join(args.output, "%s%d.tif.addpar")
             
             shutil.copy(ori_tmpl % (args.central, cam), 
                 ori_tmpl % (plane, cam))
@@ -88,21 +89,21 @@ if __name__ == "__main__":
                 addpar_tmpl % (plane, cam))
     
         # Per-plane points files
-        fname = os.path.join(path, "points_%s.txt" % plane)
+        fname = os.path.join(args.output, "points_wf_%s.txt" % plane)
         if not os.path.exists(fname) or args.clobber:
             plane_pts = known_points.copy()
             plane_pts[:,3] += shift
             np.savetxt(fname, plane_pts, fmt="%10.5f")
     
         # per-plane epi-checker config 
-        fname = os.path.join(path, "multi/%s.yaml" % plane)
+        fname = os.path.join(args.output, "multi/%s.yaml" % plane)
         if os.path.exists(fname) and not args.clobber:
                 continue
         
         epi_yaml = []
         for camn in xrange(args.num_cams):
             epi_yaml.append(
-                multi_yaml.format(path=path, plane=plane, cam=camn + 1))
+                multi_yaml.format(path=args.output, plane=plane, cam=camn + 1))
         
         epi_file = open(fname, 'w')
         epi_file.writelines(epi_yaml)
