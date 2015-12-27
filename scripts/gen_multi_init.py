@@ -17,9 +17,10 @@ if __name__ == "__main__":
     parser.add_argument('cam', type=int, help="Camera number")
     parser.add_argument('planes', nargs='*',
         help="Names of participating planes")
+    parser.add_argument('--output', '-o', default="cal_mp",
+        help="directory path for generated files")
     args = parser.parse_args()
     
-    path="cal_single/"
     cal_plane = Calibration()
     cal_final = Calibration()
     cal_final.set_affine_trans(np.r_[1, 0])
@@ -32,10 +33,10 @@ if __name__ == "__main__":
     decent = np.zeros(2)
     
     for plane in args.planes:
-        ori = "{path}/{plane}{cam}.tif.ori".format(path=path, plane=plane,
-            cam = args.cam)
-        addpar = "{path}/{plane}{cam}.tif.addpar".format(path=path, plane=plane,
-            cam = args.cam)
+        ori = "{path}/{plane}{cam}.tif.ori".format(path=args.output, 
+            plane=plane, cam = args.cam)
+        addpar = "{path}/{plane}{cam}.tif.addpar".format(path=args.output,
+            plane=plane, cam = args.cam)
         cal_plane.from_file(ori, addpar)
         
         pos += cal_plane.get_pos()
@@ -53,6 +54,7 @@ if __name__ == "__main__":
     cal_final.set_radial_distortion(radial/num_planes)
     cal_final.set_decentering(decent/num_planes)
     
-    ori = "{path}/multi{cam}.tif.ori".format(path=path, cam=args.cam)
-    addpar = "{path}/multi{cam}.tif.addpar".format(path=path, cam=args.cam)
+    ori = "{path}/multi{cam}.tif.ori".format(path=args.output, cam=args.cam)
+    addpar = "{path}/multi{cam}.tif.addpar".format(path=args.output, 
+        cam=args.cam)
     cal_final.write(ori, addpar)
