@@ -36,6 +36,10 @@ if __name__ == "__main__":
         known = np.loadtxt(plane['known'])
         detected = np.loadtxt(plane['detected'])
         
+        if np.any(detected == -999):
+            raise ValueError(("Using undetected points in {} will cause " + 
+                "silliness. Quitting.").format(plane['detected']))
+        
         num_known = len(known)
         num_detect = len(detected)
         
@@ -44,12 +48,14 @@ if __name__ == "__main__":
             " number of known points (%d) for %s, %s" % \
             (num_known, num_detect, plane['known'],  plane['detected']))
         
-        # Only renumber, for PyPTV compatibility:
-        if args.renum and len(all_known) > 0:
-            known[:,0] = all_known[-1][-1,0] + 1 + np.arange(len(known))
+        if len(all_known) > 0:
             detected[:,0] = all_detected[-1][-1,0] + 1 + np.arange(len(detected))
-            np.savetxt(plane['known'], known, fmt="%10.5f")
-            np.savetxt(plane['detected'], detected, fmt="%9.5f")
+        
+            # Save renumbered file, for PyPTV compatibility:
+            if args.renum:
+                known[:,0] = all_known[-1][-1,0] + 1 + np.arange(len(known))
+                np.savetxt(plane['known'], known, fmt="%10.5f")
+                np.savetxt(plane['detected'], detected, fmt="%9.5f")
 
         all_known.append(known)
         all_detected.append(detected)
