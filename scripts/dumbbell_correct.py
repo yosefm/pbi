@@ -13,6 +13,7 @@ Created on Tue Dec 15 13:39:40 2015
 # proper bindings.
 
 from optv.parameters import ControlParams
+from calib import dumbbell_target_func
 
 def control_params(**control_args):
     """
@@ -45,7 +46,8 @@ def control_params(**control_args):
     
     return control
 
-def calib_convergence(calib_vec, targets, calibs, active_cams, cpar):
+def calib_convergence(calib_vec, targets, calibs, active_cams, cpar,
+    db_length, db_weight):
     """
     Mediated the ray_convergence function and the parameter format used by 
     SciPy optimization routines, by taking a vector of variable calibration
@@ -62,9 +64,11 @@ def calib_convergence(calib_vec, targets, calibs, active_cams, cpar):
     active_cams - a sequence of True/False values stating whether the 
         corresponding camera is free to move or just a parameter.
     cpar - a ControlParams object describing the overall setting.
+    db_length - expected distance between two dumbbell points.
+    db_weight - weight of the distance error in the target function.
     
     Returns:
-    The ray convergence measure.
+    The weighted ray convergence + length error measure.
     """
     calib_pars = calib_vec.reshape(-1, 2, 3)
     
@@ -79,12 +83,12 @@ def calib_convergence(calib_vec, targets, calibs, active_cams, cpar):
         cal.set_pos(pars[0])
         cal.set_angles(pars[1])
     
-    return ray_convergence(targets, cpar, calibs)
+    return dumbbell_target_func(targets, cpar, calibs, db_length, db_weight)
 
 if __name__ == "__main__":
     from optv.calibration import Calibration
     from optv.tracking_framebuf import read_targets
-    from calib import ray_convergence, image_coords_metric
+    from calib import image_coords_metric
     
     import yaml, numpy as np
     from scipy.optimize import minimize
@@ -114,18 +118,25 @@ if __name__ == "__main__":
     scene_args['cam'] = len(cal_args)
     cpar = control_params(**scene_args)
     
+    db_length = yaml_args['dumbbell']['length']
+    db_weight = yaml_args['dumbbell']['weight']
+    
     # Soak up all targets to memory. Not perfect but how OpenPTV wants it.
     # Well, use a limited clip, ok?
-    all_targs = [[] for cam in xrange(len(cal_args))]
-    for frame in xrange(yaml_args['first'], yaml_args['last'] + 1):
-        for cam in xrange(len(cal_args)):
-            targ_file = yaml_args['template'] % (cam + 1)
-            targs = read_targets(targ_file, frame)
-            all_targs[cam].extend([t.pos() for t in targs])
+    num_frames = yaml_args['last'] - yaml_args['first'] + 1
+    all_targs = [[] for pt in xrange(num_frames*2)] # 2 targets per fram
     
-    all_targs = np.array([image_coords_metric(np.array(cam_targs), cpar) \
-        for cam_targs in all_targs])
-    assert(all_targs.shape[0] == 4 and all_targs.shape[2] == 2)
+    for cam in xrange(len(cal_args)):
+        for frame in xrange(num_frames):
+            targ_file = yaml_args['template'] % (cam + 1)
+            targs = read_targets(targ_file, yaml_args['first'] + frame)
+            
+            for tix, targ in enumerate(targs):
+                all_targs[frame*2 + tix].append(targ.pos())
+    
+    all_targs = np.array([image_coords_metric(np.array(targs), cpar) \
+        for targs in all_targs])
+    assert(all_targs.shape[1] == 4 and all_targs.shape[2] == 2)
     
     # Generate initial guess vector and bounds for optimization:
     num_active = np.sum(active)
@@ -140,14 +151,16 @@ if __name__ == "__main__":
         # converge to the trivial solution where all cameras are in the same 
         # place.
     calib_vec = calib_vec.flatten()
-        
+    
     # Test optimizer-ready target function:
     print calib_vec
-    print calib_convergence(calib_vec, all_targs, calibs, active, cpar)
+    print calib_convergence(calib_vec, all_targs, calibs, active, cpar,
+        db_length, db_weight)
     
     # Optimization:
     res = minimize(calib_convergence, calib_vec, 
-                   args=(all_targs, calibs, active, cpar), tol=5,
-                   options={'maxiter': 2000})
+                   args=(all_targs, calibs, active, cpar, db_length, db_weight),
+                   tol=1, options={'maxiter': 500})
     print res.x, res.success, res.message
-    print calib_convergence(res.x, all_targs, calibs, active, cpar)
+    print calib_convergence(res.x, all_targs, calibs, active, cpar,
+        db_length, db_weight)
