@@ -13,7 +13,8 @@ Created on Tue Dec 15 13:39:40 2015
 # proper bindings.
 
 from optv.parameters import ControlParams
-from calib import dumbbell_target_func
+from calib import  dumbbell_precision_components, dumbbell_target_func
+from numdifftools import Jacobian
 
 def control_params(**control_args):
     """
@@ -46,6 +47,71 @@ def control_params(**control_args):
     
     return control
 
+def db_comp_straight(calib_pars, targets, calibs, active_cams, cpar):
+    """
+    Mediated the dumbbell components function and the parameter format used by 
+    numdiftools, by taking a vector of variable calibration
+    parameters and pouring it into the Calibration objects understood by 
+    OpenPTV.
+    
+    Arguments:
+    calib_vec - 1D array. 3 elements: camera 1 position, 3 element: camera 1 
+        angles, next 6 for camera 2 etc.
+    targets - a (c,t,2) array, for t target metric positions in each of c 
+        cameras.
+    calibs - an array of per-camera Calibration objects. The permanent fields 
+        are retained, the variable fields get overwritten.
+    active_cams - a sequence of True/False values stating whether the 
+        corresponding camera is free to move or just a parameter.
+    cpar - a ControlParams object describing the overall setting.
+    """
+    calib_pars = calib_pars.reshape(-1, 2, 3)
+    
+    for cam, cal in enumerate(calibs):
+        if not active_cams[cam]:
+            continue
+        
+        # Pop a parameters line:
+        pars = calib_pars[0]
+        calib_pars = calib_pars[1:]
+        
+        cal.set_pos(pars[0])
+        cal.set_angles(pars[1])
+    
+    return dumbbell_precision_components(targets, cpar, calibs)
+
+def calib_lagrange_muliplier(params, targets, calibs, active_cams, cpar):
+    """
+    Calculate the magnitudes of lagrange-multiplier presentation of each
+    dumbbell point so that they can be least-squared.
+    
+    Arguments:
+    params - 1D array. 3 elements: camera 1 position, 3 element: camera 1 
+        angles, next 6 for camera 2 etc. After cameras: t/2 lagrange 
+        multipliers.
+    targets - a (c,t,2) array, for t target metric positions in each of c 
+        cameras.
+    calibs - an array of per-camera Calibration objects. The permanent fields 
+        are retained, the variable fields get overwritten.
+    active_cams - a sequence of True/False values stating whether the 
+        corresponding camera is free to move or just a parameter.
+    cpar - a ControlParams object describing the overall setting.
+    """
+    num_active = np.sum(active_cams)
+    calib_vec = params[6*num_active]
+    
+    # This is needed only for the dumbbell size constraint.
+    comps_local = db_comp_straight(calib_vec, targets, calibs, active_cams, cpar)
+    
+    # Derivatives:
+    derivable = lambda calib_pars: db_comp_straight(
+        calib_pars, targets, calibs, active_cams, cpar)
+    jfun = Jacobian(derivable)
+    jac = jfun(calib_vec)
+    
+    # Lagrange function gradient components:
+    grad = jac[]
+    
 def calib_convergence(calib_vec, targets, calibs, active_cams, cpar,
     db_length, db_weight):
     """
