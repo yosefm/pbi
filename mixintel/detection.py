@@ -29,14 +29,16 @@ def detect_large_particles(image, approx_size=15):
     """
     sel = disk(approx_size)
     matched = match_template(image, sel, pad_input=True)
-    matched[matched < 0.5] = 0
-    peaks = np.c_[peak_local_max(matched)][:,::-1]
+    peaks = np.c_[peak_local_max(matched, threshold_abs=0.5)][:,::-1]
     targs = TargetArray(len(peaks))
     
     tnum = 0
     for t, pos in izip(targs, peaks):
         t.set_pos(pos)
         t.set_pnr(tnum)
+        t.set_sum_grey_value(10) # whatever
+        t.set_pixel_counts(approx_size**2 * 4, approx_size*2, approx_size*2)
+        t.set_tnr(0)
         tnum += 1
     
     return targs
