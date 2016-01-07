@@ -33,7 +33,10 @@ def detect_large_particles(image, approx_size=15):
     peaks = np.c_[peak_local_max(matched)][:,::-1]
     targs = TargetArray(len(peaks))
     
+    tnum = 0
     for t, pos in izip(targs, peaks):
         t.set_pos(pos)
+        t.set_pnr(tnum)
+        tnum += 1
     
     return targs
