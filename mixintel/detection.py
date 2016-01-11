@@ -38,7 +38,8 @@ def detect_large_particles(image, approx_size=15):
         t.set_pnr(tnum)
         t.set_sum_grey_value(10) # whatever
         t.set_pixel_counts(approx_size**2 * 4, approx_size*2, approx_size*2)
-        t.set_tnr(0)
+        t.set_tnr(-1) # The official "correspondence not found" that the rest
+                      # of the code expects.
         tnum += 1
     
     return targs
