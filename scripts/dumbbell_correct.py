@@ -98,6 +98,8 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('config', type=str, default="dumbbell.yaml",
         help="path to YAML configuration file.")
+    parser.add_argument('--clobber', action='store_true', default=False,
+        help="Replace original ori files with result.")
     cli_args = parser.parse_args()
     yaml_args = yaml.load(file(cli_args.config))
     
@@ -146,6 +148,7 @@ if __name__ == "__main__":
         if active[cam]:
             calib_vec[active_ptr,0] = calibs[cam].get_pos()
             calib_vec[active_ptr,1] = calibs[cam].get_angles()
+            active_ptr += 1
         
         # Positions within a neighbourhood of the initial guess, so we don't 
         # converge to the trivial solution where all cameras are in the same 
@@ -164,3 +167,14 @@ if __name__ == "__main__":
     print res.x, res.success, res.message
     print calib_convergence(res.x, all_targs, calibs, active, cpar,
         db_length, db_weight)
+    
+    if cli_args.clobber:
+        x = res.x.reshape(-1,2,3)
+        for cam in xrange(len(cal_args)):
+            if active[cam]:
+                # MAke sure 'minimize' didn't play around:
+                calibs[cam].set_pos(x[0,0])
+                calibs[cam].set_angles(x[0,1])
+                calibs[cam].write(cal_args[cam]['ori_file'], 
+                    cal_args[cam]['addpar_file'])
+                x = x[1:]
