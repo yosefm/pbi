@@ -13,22 +13,8 @@ cimport numpy as np
 from optv.tracking_framebuf cimport TargetArray, target
 from optv.calibration cimport Calibration, Exterior, Interior, Glass, ap_52, \
     calibration
-from optv.parameters cimport ControlParams, VolumeParams
-
-cdef extern from "optv/parameters.h":
-    ctypedef struct mm_np:
-        int lut
-    
-    ctypedef struct control_par:
-        int imx, imy
-        mm_np *mm
-    
-    control_par* read_control_par(char *filename)
-    
-    ctypedef struct volume_par:
-        double X_lay[2], Zmin_lay[2], Zmax_lay[2]
-    
-    volume_par *read_volume_par(char *filename)
+from optv.parameters cimport ControlParams, VolumeParams, mm_np, control_par, \
+    volume_par
 
 cdef extern from "optv/trafo.h":
     void metric_to_pixel(double *x_pixel, double* y_pixel,
