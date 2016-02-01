@@ -12,34 +12,8 @@ Created on Tue Dec 15 13:39:40 2015
 # These readers should go in a nice module, but I wait on Max to finish the 
 # proper bindings.
 
-from optv.parameters import ControlParams
 from calib import dumbbell_target_func
-
-def control_params(**control_args):
-    """
-    Generates an OpenPTV ControlParams object from its field values.
-    
-    Arguments:
-    control_args - a dictionary with the recognized keys. Currently these are:
-        flags, image_size, pixel_size, cam_side_n, wall_ns, object_side_n, 
-        wall_thicks, cams
-    """
-    control_args.setdefault('cams', 1)
-    control = ControlParams( control_args['cams'])
-    
-    control.set_hp_flag('hp' in control_args['flags'])
-    control.set_allCam_flag('allcam' in control_args['flags'])
-    control.set_tiff_flag('headers' in control_args['flags'])
-    control.set_image_size(control_args['image_size'])
-    control.set_pixel_size(control_args['pixel_size'])
-    control.set_chfield(0)
-    
-    layers = control.get_multimedia_params()
-    layers.set_n1(control_args['cam_side_n'])
-    layers.set_layers(control_args['wall_ns'], control_args['wall_thicks'])
-    layers.set_n3(control_args['object_side_n'])
-    
-    return control
+from mixintel.optv import control_params
 
 def calib_convergence(calib_vec, targets, calibs, active_cams, cpar,
     db_length, db_weight):
@@ -112,7 +86,7 @@ if __name__ == "__main__":
         active.append(cam_data['free'])
     
     scene_args = yaml_args['scene']
-    scene_args['cam'] = len(cal_args)
+    scene_args['cams'] = len(cal_args)
     cpar = control_params(**scene_args)
     
     db_length = yaml_args['dumbbell']['length']
