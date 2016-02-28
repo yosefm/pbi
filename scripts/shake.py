@@ -17,7 +17,7 @@ if __name__ == "__main__":
     from calib import full_calibration
     from mixintel.openptv import control_params
     
-    from optv.tracking_framebuf import TargetArray, Frame, CORRES_NONE
+    from optv.tracking_framebuf import TargetArray, Frame
     from optv.calibration import Calibration
     
     parser = argparse.ArgumentParser()
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     parser.add_argument('--dry-run', '-d', action='store_true', default=False,
         help="Don't write ori/addpar files with results.")
     parser.add_argument('--output', '-o', 
-        help="Template calibration filename with one %d for camera number." + \
+        help="Template calibration filename with one %%d for camera number." + \
         "default is to overwrite initial guess. Filename extension is added.")
     args = parser.parse_args()
     
@@ -57,7 +57,6 @@ if __name__ == "__main__":
     # respective detections.
     all_known = []
     all_detected = [[] for c in xrange(cpar.get_num_cams())]
-    
     for frm_num in xrange(yaml_args['first'], yaml_args['last'] + 1):
         frame = Frame(cpar.get_num_cams(), 
             corres_file_base=yaml_args['corres_file_base'], 
