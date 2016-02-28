@@ -7,41 +7,14 @@ Created on Sun Jul 19 14:07:11 2015
 
 from PyQt4 import QtCore, QtGui
 from itertools import izip
+import numpy as np, matplotlib.pyplot as pl
 
 from calib import simple_highpass, detect_ref_points, \
     pixel_2D_coords, external_calibration, match_detection_to_ref, \
     full_calibration
 
 from optv.calibration import Calibration
-from optv.tracking_framebuf import TargetArray
-
-import numpy as np, matplotlib.pyplot as pl
-from skimage.feature import match_template, peak_local_max
-from skimage.morphology import disk
-
-def detect_large_particles(image, approx_size=15):
-    """
-    A particle detection method based on template matching followed by peak 
-    fitting. It is needed when particles are large, because the other methods
-    assume that particles are small clumps of particles and can find multiple
-    targets per large particle or find an inconsistent centre.
-    
-    Arguments:
-    image - the image to search for particles.
-    approx_size - search for particles whose pixel radius is around this value.
-    
-    Returns:
-    a TargetArray with the detections.
-    """
-    sel = disk(approx_size)
-    matched = match_template(image, sel, pad_input=True)
-    peaks = np.c_[peak_local_max(matched, threshold_abs=0.5)][:,::-1]
-    targs = TargetArray(len(peaks))
-    
-    for t, pos in izip(targs, peaks):
-        t.set_pos(pos)
-    
-    return targs
+from mixintel.detection import detect_large_particles
 
 def gray2qimage(gray):
     """Convert the 2D numpy array `gray` into a 8-bit QImage with a gray
@@ -62,7 +35,25 @@ class CameraPanel(QtGui.QGraphicsView):
         QtGui.QGraphicsView.__init__(self, parent)
     
     def reset(self, control, cam_num, manual_detection_numbers=None, cal=None,
-              detection_file=None):
+              detection_file=None, detection_method="default"):
+        """
+        This function must be called before the widget is usable. It sets the
+        needed configuration for future interactions.
+        
+        Arguments:
+        control - a ControlParams object holding general scene information.
+        cam_num - camera number, a unique ID used for identifying the panel 
+            when thgee are several of those in a UI.
+        manual_detection_numbers - numbers of points in the known-points list
+            that are to be used for manual (external) calibration.
+        cal - a Calibration object holding initial camera orientation. If None,
+            a default calibration will be created, but don't use this unless
+            you know what you're doing.
+        detection_file - if not None, a .par file with overrides to the default
+            detection file.
+        detection_method - either "default" to use OpenPTV detection, or 
+            'large' to use a template-matching algorithm.
+        """
         self._manual_detection_pts = []
         self._manual_detection_nums = manual_detection_numbers
         self._next_manual = 0
@@ -76,6 +67,7 @@ class CameraPanel(QtGui.QGraphicsView):
         else:
             self._cal = cal
         
+        self._detect_method = detection_method
         self._detect_path = detection_file
         self._targets = None
         self._detected_patches = []
@@ -202,13 +194,14 @@ class CameraPanel(QtGui.QGraphicsView):
             self._scene.removeItem(patch)
         
         # New detection from C:
-        if True:
+        if self._detect_method == 'large':
             self._targets = detect_large_particles(self._orig_img)
         elif self._detect_path is None:
             self._targets = detect_ref_points(self._hp_img, self._num, self._cpar)
         else:
             self._targets = detect_ref_points(self._hp_img, self._num,
                 self._cpar, self._detect_path)
+        
         # Now draw it:
         blue = QtGui.QPen(QtGui.QColor("blue"))
         rad = 5

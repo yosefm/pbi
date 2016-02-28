@@ -11,7 +11,7 @@ from PyQt4 import QtCore, QtGui
 from cam_calib_base import Ui_CameraCalibration
 
 from optv.calibration import Calibration
-from optv.parameters import ControlParams
+from mixintel.openptv import control_params
 
 class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
     def __init__(self, control_args, cam, ori, addpar, man_file, known_points,
@@ -25,23 +25,8 @@ class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
         cal = Calibration()
         cal.from_file(ori, addpar)
         
-        control = ControlParams(1)
-        control.set_hp_flag( 1 if 'hp' in control_args['flags'] else 0)
-        control.set_allCam_flag( 1 if 'allcam' in control_args['flags'] else 0)
-        control.set_tiff_flag( 1 if 'headers' in control_args['flags'] else 0)
-        control.set_imx(control_args['image_size'][0])
-        control.set_imy(control_args['image_size'][1])
-        control.set_pix_x(control_args['pixel_size'][0])
-        control.set_pix_y(control_args['pixel_size'][1])
-        control.set_chfield(0)
-        
-        layers = control.get_multimedia_params()
-        layers.set_lut(0)
-        layers.set_n1(control_args['cam_side_n'])
-        layers.set_n2(control_args['wall_ns'])
-        layers.set_n3(control_args['object_side_n'])
-        layers.set_d(control_args['wall_thicks'])
-        layers.set_nlay(len(control_args['wall_ns']))
+        control_args.setdefault('cams', 1)
+        control = control_params(**control_args)
         
         # Subordinate widgets setup:
         self.cam.reset(control, cam, manual_detection_numbers, cal, detect_file)
@@ -145,6 +130,8 @@ if __name__ == "__main__":
         cal_args['ori_file'], cal_args['addpar_file'], 
         cal_args['manual_detection_file'], cal_args['known_points'],
         cal_args['manual_detection_points'])
+    if cal_args.has_key('detection_method'):
+        conf_args = conf_args + (None, cal_args['detection_method'])
     if cal_args.has_key('detection_par_file'):
         conf_args = conf_args + (cal_args['detection_par_file'],)
     window = SingleCameraCalibration(*conf_args)
