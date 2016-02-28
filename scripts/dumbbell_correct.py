@@ -13,7 +13,7 @@ Created on Tue Dec 15 13:39:40 2015
 # proper bindings.
 
 from calib import dumbbell_target_func
-from mixintel.optv import control_params
+from mixintel.openptv import control_params
 
 def calib_convergence(calib_vec, targets, calibs, active_cams, cpar,
     db_length, db_weight):
