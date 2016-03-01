@@ -30,6 +30,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     yaml_args = yaml.load(file(args.config))
+    yaml_args.setdefault('skip', 1)
     
     # Generate initial-guess calibration objects. These get overwritten by
     # the optimizer's target function.
@@ -57,7 +58,8 @@ if __name__ == "__main__":
     # respective detections.
     all_known = []
     all_detected = [[] for c in xrange(cpar.get_num_cams())]
-    for frm_num in xrange(yaml_args['first'], yaml_args['last'] + 1):
+    for frm_num in xrange(yaml_args['first'], yaml_args['last'] + 1, 
+                          yaml_args['skip']):
         frame = Frame(cpar.get_num_cams(), 
             corres_file_base=yaml_args['corres_file_base'], 
             linkage_file_base=yaml_args['linkage_file_base'],
