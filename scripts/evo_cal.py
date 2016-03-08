@@ -23,7 +23,17 @@ def interrupt(signum, frame):
     
 signal.signal(signal.SIGINT, interrupt)
 
-def gen_calib(pos, angs):
+def get_pos(inters, R, angs):
+    # Transpose of http://planning.cs.uiuc.edu/node102.html
+    # Also consider the angles are reversed when moving from camera frame to
+    # global frame.
+    s = np.sin(angs)
+    c = np.cos(angs)
+    pos = inters + R*np.r_[ s[1], -c[1]*s[0], c[1]*c[0] ]
+    return pos
+    
+def gen_calib(inters, R, angs):
+    pos = get_pos(inters, R, angs)
     cal = Calibration()
     cal.set_pos(pos)
     cal.set_angles(angs)
@@ -32,6 +42,7 @@ def gen_calib(pos, angs):
     cal.set_decentering(np.zeros(2))
     cal.set_affine_trans(np.r_[1,0])
     cal.set_glass_vec(np.r_[0., 0., -100.])
+
     return cal
     
 def fitness(solution, calib_targs, calib_detect, cpar):
@@ -50,9 +61,13 @@ def fitness(solution, calib_targs, calib_detect, cpar):
     cpar - a ControlParams object with image data.
     """
     # Calculate exterior position:
-    
+    inters = np.zeros(3)
+    inters[:2] = solution[:2]
+    R = solution[2]
+    angs = solution[3:] 
+        
     # Set calibration object 
-    cal = gen_calib(solution[:3], solution[3:])
+    cal = gen_calib(inters, R, angs)
     
     #print pixel_2D_coords(cal, calib_targs, cpar)
     known_2d = pixel_2D_coords(cal, calib_targs, cpar)
@@ -99,7 +114,8 @@ pop_size = 1500
 #bounds = [(100., 200.), (-120, 0), (150, 400), (np.pi - 1, np.pi + 1), (-1, 0), (-0.1, 0.1)]
 ##bounds = [(100., 200.), (-120, 0), (-150, -400), (-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi)]
 if cam == 0:
-    bounds = [(10., 100.), (0, 100), (-200, -300), (-1, 1), (-np.pi, np.pi), (-1, 1)]
+    #bounds = [(10., 100.), (0, 100), (-200, -300), (-1, 1), (-np.pi, np.pi), (-1, 1)]
+    bounds = [(-20.,20.), (-20.,20.), (210.,300.), (-0.3, 0.3), (np.pi-0.3, np.pi+0.3), (-0.5, 0.5)]
     cal_points = np.loadtxt(calblock_name)[:,1:]
     print cal_points
 elif cam == 1:
@@ -124,15 +140,19 @@ print fits
 
 def show_current(signum, frame):
     best_fit = np.argmin(fits)
+    inters = np.zeros(3)
+    inters[:2] = init_sols[best_fit][:2]
+    R = init_sols[best_fit][2]
+    angs = init_sols[best_fit][3:]
+    pos = get_pos(inters, R, angs)
+
     print
     print fits[best_fit]
-    print "%.8f %.8f %.8f" % tuple(init_sols[best_fit][:3])
-    print "%.8f %.8f %.8f" % tuple(init_sols[best_fit][3:])
+    print "%.8f %.8f %.8f" % tuple(pos)
+    print "%.8f %.8f %.8f" % tuple(angs)
     
-    pos = init_sols[best_fit][:3]
-    angs = init_sols[best_fit][3:]
     
-    cal = gen_calib(pos, angs)
+    cal = gen_calib(inters, R, angs)
     init_xs, init_ys = pixel_2D_coords(cal, cal_points, cpar).T
     
     hp = simple_highpass(image, cpar)
