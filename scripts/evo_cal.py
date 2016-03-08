@@ -13,8 +13,7 @@ import numpy.random as rnd
 from matplotlib import cm
 
 from optv.calibration import Calibration
-from calib import image_coords_metric, pixel_2D_coords, simple_highpass, \
-    detect_ref_points
+from calib import pixel_2D_coords, simple_highpass, detect_ref_points
 
 wrap_it_up = False
 def interrupt(signum, frame):
@@ -32,7 +31,7 @@ def get_pos(inters, R, angs):
     pos = inters + R*np.r_[ s[1], -c[1]*s[0], c[1]*c[0] ]
     return pos
     
-def gen_calib(inters, R, angs):
+def gen_calib(inters, R, angs, glass_vec):
     pos = get_pos(inters, R, angs)
     cal = Calibration()
     cal.set_pos(pos)
@@ -41,11 +40,11 @@ def gen_calib(inters, R, angs):
     cal.set_radial_distortion(np.zeros(3))
     cal.set_decentering(np.zeros(2))
     cal.set_affine_trans(np.r_[1,0])
-    cal.set_glass_vec(np.r_[0., 0., -100.])
+    cal.set_glass_vec(glass_vec)
 
     return cal
     
-def fitness(solution, calib_targs, calib_detect, cpar):
+def fitness(solution, calib_targs, calib_detect, glass_vec, cpar):
     """
     Checks the fitness of an evolutionary solution of calibration values to 
     target points. Fitness is the sum of squares of the distance from each 
@@ -67,7 +66,7 @@ def fitness(solution, calib_targs, calib_detect, cpar):
     angs = solution[3:] 
         
     # Set calibration object 
-    cal = gen_calib(inters, R, angs)
+    cal = gen_calib(inters, R, angs, glass_vec)
     
     #print pixel_2D_coords(cal, calib_targs, cpar)
     known_2d = pixel_2D_coords(cal, calib_targs, cpar)
@@ -99,9 +98,9 @@ control_args = yaml_args['scene']
 cpar = control_params(**control_args)
 cam = yaml_args['target']['number']
 
-fname = "/home/yosef/phd/data/20151220/cal_3d/cam%d.tif" % (cam + 1)
-#calblock_name = 'cal/calblock_20.txt'
-calblock_name = 'cal_3d/points1.txt'
+fname = yaml_args['target']['image']
+calblock_name = yaml_args['target']['known_points']
+glass_vec = np.r_[yaml_args['target']['glass_vec']]
 
 image = pl.imread(fname)
 hp = simple_highpass(image, cpar)
@@ -114,19 +113,20 @@ pop_size = 1500
 #bounds = [(100., 200.), (-120, 0), (150, 400), (np.pi - 1, np.pi + 1), (-1, 0), (-0.1, 0.1)]
 ##bounds = [(100., 200.), (-120, 0), (-150, -400), (-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi)]
 if cam == 0:
-    #bounds = [(10., 100.), (0, 100), (-200, -300), (-1, 1), (-np.pi, np.pi), (-1, 1)]
     bounds = [(-20.,20.), (-20.,20.), (210.,300.), (-0.3, 0.3), (np.pi-0.3, np.pi+0.3), (-0.5, 0.5)]
     cal_points = np.loadtxt(calblock_name)[:,1:]
-    print cal_points
 elif cam == 1:
-    bounds = [(-100., 100.), (-120, 0), (-200, -400), (-1, 1), (np.pi/2, 1.5*np.pi), (-1, 1)]
-    cal_points = np.loadtxt(calblock_name)[:20,1:]
+    #bounds = [(-100., 100.), (-120, 0), (-200, -400), (-1, 1), (np.pi/2, 1.5*np.pi), (-1, 1)]
+    bounds = [(-20.,20.), (-20.,20.), (210.,300.), (-0.3, 0.3), (np.pi-0.3, np.pi+0.3), (-0.5, 0.5)]
+    cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 2:
-    bounds = [(-150., 150.), (-120, 0), (250, 500), (-1, 1), (-1, 1), (-1, 1)]
-    cal_points = np.loadtxt(calblock_name)[:20,1:]
+    #bounds = [(-150., 150.), (-120, 0), (250, 500), (-1, 1), (-1, 1), (-1, 1)]
+    bounds = [(-20.,20.), (-20.,20.), (210.,300.), (-0.4, 0.4), (-0.3, 0.3), (-0.3, 0.3)]
+    cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 3:
-    bounds = [(50., 250.), (-120, 0), (200, 400), (-1, 1), (-1, 1), (-1, 1)]
-    cal_points = np.loadtxt(calblock_name)[:20,1:]
+    #bounds = [(50., 250.), (-120, 0), (200, 400), (-1, 1), (-1, 1), (-1, 1)]
+    bounds = [(-20.,20.), (-20.,20.), (210.,300.), (-0.3, 0.3), (-0.3, 0.3), (-0.3, 0.3)]
+    cal_points = np.loadtxt(calblock_name)[:,1:]
     
 init_sols = np.array([
     np.r_[[rnd.rand()*(maxb - minb) + minb for minb, maxb in bounds]
@@ -134,7 +134,7 @@ init_sols = np.array([
 
 fits = []
 for sol in init_sols:
-    fits.append( fitness(sol, cal_points, targs, cpar) )
+    fits.append( fitness(sol, cal_points, targs, glass_vec, cpar) )
 fits = np.array(fits)
 print fits
 
@@ -152,7 +152,7 @@ def show_current(signum, frame):
     print "%.8f %.8f %.8f" % tuple(angs)
     
     
-    cal = gen_calib(inters, R, angs)
+    cal = gen_calib(inters, R, angs, glass_vec)
     init_xs, init_ys = pixel_2D_coords(cal, cal_points, cpar).T
     
     hp = simple_highpass(image, cpar)
@@ -204,7 +204,7 @@ for it in xrange(num_iters):
     if mutation_dice < mutation_chance:
         mutation(newsol, bounds)
     
-    newfit = fitness(newsol, cal_points, targs, cpar)
+    newfit = fitness(newsol, cal_points, targs, glass_vec, cpar)
     
     # Niching to avoid early convergence:
     dist = np.linalg.norm(newsol - init_sols, axis=1).min()
