@@ -31,14 +31,14 @@ def get_pos(inters, R, angs):
     pos = inters + R*np.r_[ s[1], -c[1]*s[0], c[1]*c[0] ]
     return pos
     
-def gen_calib(inters, R, angs, glass_vec):
+def gen_calib(inters, R, angs, glass_vec, prim_point, radial_dist, decent):
     pos = get_pos(inters, R, angs)
     cal = Calibration()
     cal.set_pos(pos)
     cal.set_angles(angs)
-    cal.set_primary_point(np.r_[0.,0.,80.])
-    cal.set_radial_distortion(np.zeros(3))
-    cal.set_decentering(np.zeros(2))
+    cal.set_primary_point(prim_point)
+    cal.set_radial_distortion(radial_dist)
+    cal.set_decentering(decent)
     cal.set_affine_trans(np.r_[1,0])
     cal.set_glass_vec(glass_vec)
 
@@ -63,10 +63,13 @@ def fitness(solution, calib_targs, calib_detect, glass_vec, cpar):
     inters = np.zeros(3)
     inters[:2] = solution[:2]
     R = solution[2]
-    angs = solution[3:] 
+    angs = solution[3:6] 
+    prim_point = solution[6:9]
+    rad_dist = solution[9:12]
+    decent = solution[12:14]
         
     # Set calibration object 
-    cal = gen_calib(inters, R, angs, glass_vec)
+    cal = gen_calib(inters, R, angs, glass_vec, prim_point, rad_dist, decent)
     
     #print pixel_2D_coords(cal, calib_targs, cpar)
     known_2d = pixel_2D_coords(cal, calib_targs, cpar)
@@ -113,7 +116,13 @@ pop_size = 1500
 #bounds = [(100., 200.), (-120, 0), (150, 400), (np.pi - 1, np.pi + 1), (-1, 0), (-0.1, 0.1)]
 ##bounds = [(100., 200.), (-120, 0), (-150, -400), (-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi)]
 if cam == 0:
-    bounds = [(-20.,20.), (-20.,20.), (210.,300.), (-0.3, 0.3), (np.pi-0.3, np.pi+0.3), (-0.5, 0.5)]
+    bounds = [(-20.,20.), (-20.,20.), # offset
+              (210.,300.), # R
+              (-0.3, 0.3), (np.pi-0.3, np.pi+0.3), (-0.5, 0.5), # angles
+              (-0.05, 0.05), (-0.05, 0.05), (70, 90), # primary point
+              (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
+              (-1e-5, 1e-5), (-1e-5, 1e-5) # decentering
+    ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 1:
     #bounds = [(-100., 100.), (-120, 0), (-200, -400), (-1, 1), (np.pi/2, 1.5*np.pi), (-1, 1)]
@@ -143,16 +152,23 @@ def show_current(signum, frame):
     inters = np.zeros(3)
     inters[:2] = init_sols[best_fit][:2]
     R = init_sols[best_fit][2]
-    angs = init_sols[best_fit][3:]
+    angs = init_sols[best_fit][3:6]
     pos = get_pos(inters, R, angs)
+    prim = init_sols[best_fit][6:9]
+    rad = init_sols[best_fit][9:12]
+    decent = init_sols[best_fit][12:14]
 
     print
     print fits[best_fit]
+    print "pos/ang:"
     print "%.8f %.8f %.8f" % tuple(pos)
     print "%.8f %.8f %.8f" % tuple(angs)
+    print
+    print "internal: %.8f %.8f %.8f" % tuple(prim)
+    print "radial distortion: %.8f %.8f %.8f" % tuple(rad)
+    print "decentering: %.8f %.8f" % tuple(decent)
     
-    
-    cal = gen_calib(inters, R, angs, glass_vec)
+    cal = gen_calib(inters, R, angs, glass_vec, prim, rad, decent)
     init_xs, init_ys = pixel_2D_coords(cal, cal_points, cpar).T
     
     hp = simple_highpass(image, cpar)
@@ -166,7 +182,7 @@ def show_current(signum, frame):
 
 signal.signal(signal.SIGTSTP, show_current)
 
-mutation_chance = 0.55
+mutation_chance = 0.7
 niche_size = 50
 niche_penalty = 2.
 num_iters = 1000000
