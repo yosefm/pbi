@@ -126,14 +126,15 @@ if __name__ == "__main__":
     scene_args = yaml_args['scene']
     
     app = QtGui.QApplication([])
+    
+    cal_args.setdefault('detection_par_file', None)
     conf_args = (scene_args, cal_args['number'], 
         cal_args['ori_file'], cal_args['addpar_file'], 
         cal_args['manual_detection_file'], cal_args['known_points'],
-        cal_args['manual_detection_points'])
+        cal_args['manual_detection_points'], cal_args['detection_par_file'])
     if cal_args.has_key('detection_method'):
-        conf_args = conf_args + (None, cal_args['detection_method'])
-    if cal_args.has_key('detection_par_file'):
-        conf_args = conf_args + (cal_args['detection_par_file'],)
+        conf_args = conf_args + (cal_args['detection_method'], )
+        
     window = SingleCameraCalibration(*conf_args)
     
     #br = window._scene.itemsBoundingRect()
