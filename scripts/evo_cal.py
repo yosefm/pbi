@@ -80,10 +80,12 @@ def fitness(solution, calib_targs, calib_detect, glass_vec, cpar):
     
     return np.sum(dists**2)
 
-def mutation(solution, bounds):
-    gene = rnd.random_integers(0, len(solution) - 1)
-    minb, maxb = bounds[gene]
-    solution[gene] = rnd.rand()*(maxb - minb) + minb
+def mutation(solution, bounds, chance):
+    genes = rnd.rand(len(solution)) < chance
+    for gix in xrange(len(solution)):
+        if genes[gix]:
+            minb, maxb = bounds[gix]
+            solution[gix] = rnd.rand()*(maxb - minb) + minb
 
 def recombination(sol1, sol2):
     genes = rnd.random_integers(0, 1, len(sol1))
@@ -121,7 +123,7 @@ if cam == 0:
               (-0.3, 0.3), (np.pi-0.3, np.pi+0.3), (-0.5, 0.5), # angles
               (-0.05, 0.05), (-0.05, 0.05), (70, 90), # primary point
               (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
-              (-1e-5, 1e-5), (-1e-5, 1e-5) # decentering
+              (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
     ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 1:
@@ -136,7 +138,9 @@ elif cam == 3:
     #bounds = [(50., 250.), (-120, 0), (200, 400), (-1, 1), (-1, 1), (-1, 1)]
     bounds = [(-20.,20.), (-20.,20.), (210.,300.), (-0.3, 0.3), (-0.3, 0.3), (-0.3, 0.3)]
     cal_points = np.loadtxt(calblock_name)[:,1:]
-    
+
+ranges = np.r_[[(maxb - minb) for minb, maxb in bounds]]
+
 init_sols = np.array([
     np.r_[[rnd.rand()*(maxb - minb) + minb for minb, maxb in bounds]
     ] for s in xrange(pop_size)])
@@ -182,13 +186,13 @@ def show_current(signum, frame):
 
 signal.signal(signal.SIGTSTP, show_current)
 
-mutation_chance = 0.7
-niche_size = 50
+mutation_chance = 0.05
+niche_size = len(bounds) / 2.
 niche_penalty = 2.
 num_iters = 1000000
 for it in xrange(num_iters):
     if it % 100 == 0:
-        niche_size *= 0.997
+        niche_size *= 0.996
         niche_penalty = niche_penalty**0.9995
     if it % 500 == 0:
         print fits.min(), fits.max()
@@ -216,14 +220,12 @@ for it in xrange(num_iters):
     
     # breed into losers
     newsol = recombination(*init_sols[breeders])
-    mutation_dice = rnd.rand()
-    if mutation_dice < mutation_chance:
-        mutation(newsol, bounds)
+    mutation(newsol, bounds, mutation_chance)
     
     newfit = fitness(newsol, cal_points, targs, glass_vec, cpar)
     
     # Niching to avoid early convergence:
-    dist = np.linalg.norm(newsol - init_sols, axis=1).min()
+    dist = np.linalg.norm((newsol - init_sols)/ranges, axis=1).min()
     if dist < niche_size:
         newfit *= niche_penalty
         #print "niching", newfit
