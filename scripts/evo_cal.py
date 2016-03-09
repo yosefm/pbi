@@ -12,8 +12,8 @@ import numpy as np, matplotlib.pyplot as pl
 import numpy.random as rnd
 from matplotlib import cm
 
-from optv.calibration import Calibration
 from calib import pixel_2D_coords, simple_highpass, detect_ref_points
+from mixintel.evolution import gen_calib, get_pos, mutation, recombination
 
 wrap_it_up = False
 def interrupt(signum, frame):
@@ -21,28 +21,6 @@ def interrupt(signum, frame):
     wrap_it_up = True
     
 signal.signal(signal.SIGINT, interrupt)
-
-def get_pos(inters, R, angs):
-    # Transpose of http://planning.cs.uiuc.edu/node102.html
-    # Also consider the angles are reversed when moving from camera frame to
-    # global frame.
-    s = np.sin(angs)
-    c = np.cos(angs)
-    pos = inters + R*np.r_[ s[1], -c[1]*s[0], c[1]*c[0] ]
-    return pos
-    
-def gen_calib(inters, R, angs, glass_vec, prim_point, radial_dist, decent):
-    pos = get_pos(inters, R, angs)
-    cal = Calibration()
-    cal.set_pos(pos)
-    cal.set_angles(angs)
-    cal.set_primary_point(prim_point)
-    cal.set_radial_distortion(radial_dist)
-    cal.set_decentering(decent)
-    cal.set_affine_trans(np.r_[1,0])
-    cal.set_glass_vec(glass_vec)
-
-    return cal
     
 def fitness(solution, calib_targs, calib_detect, glass_vec, cpar):
     """
@@ -59,7 +37,7 @@ def fitness(solution, calib_targs, calib_detect, glass_vec, cpar):
         target.
     cpar - a ControlParams object with image data.
     """
-    # Calculate exterior position:
+    # Breakdown of of agregate solution vector:
     inters = np.zeros(3)
     inters[:2] = solution[:2]
     R = solution[2]
@@ -68,30 +46,54 @@ def fitness(solution, calib_targs, calib_detect, glass_vec, cpar):
     rad_dist = solution[9:12]
     decent = solution[12:14]
         
-    # Set calibration object 
+    # Compare known points' projections to detections:
     cal = gen_calib(inters, R, angs, glass_vec, prim_point, rad_dist, decent)
-    
-    #print pixel_2D_coords(cal, calib_targs, cpar)
     known_2d = pixel_2D_coords(cal, calib_targs, cpar)
-    #print known_2d
-    
     dists = np.linalg.norm(
         known_2d[None,:,:] - calib_detect[:,None,:], axis=2).min(axis=0)
     
     return np.sum(dists**2)
 
-def mutation(solution, bounds, chance):
-    genes = rnd.rand(len(solution)) < chance
-    for gix in xrange(len(solution)):
-        if genes[gix]:
-            minb, maxb = bounds[gix]
-            solution[gix] = rnd.rand()*(maxb - minb) + minb
+def show_current(signum, frame):
+    """
+    Takes the best-fit current to call time, and displays the current 
+    calibration that produces the fit, and graphs the known/detected points
+    for visual match check.
+    """
+    fits = frame.f_globals['fits']
+    cal_points = frame.f_globals['cal_points']
+    hp = frame.f_globals['hp']
+    targs = frame.f_globals['targs']
+    
+    best_fit = np.argmin(fits)
+    inters = np.zeros(3)
+    inters[:2] = init_sols[best_fit][:2]
+    R = init_sols[best_fit][2]
+    angs = init_sols[best_fit][3:6]
+    pos = get_pos(inters, R, angs)
+    prim = init_sols[best_fit][6:9]
+    rad = init_sols[best_fit][9:12]
+    decent = init_sols[best_fit][12:14]
 
-def recombination(sol1, sol2):
-    genes = rnd.random_integers(0, 1, len(sol1))
-    ret = sol1.copy()
-    ret[genes == 1] = sol2[genes == 1]
-    return ret
+    print
+    print fits[best_fit]
+    print "pos/ang:"
+    print "%.8f %.8f %.8f" % tuple(pos)
+    print "%.8f %.8f %.8f" % tuple(angs)
+    print
+    print "internal: %.8f %.8f %.8f" % tuple(prim)
+    print "radial distortion: %.8f %.8f %.8f" % tuple(rad)
+    print "decentering: %.8f %.8f" % tuple(decent)
+    
+    cal = gen_calib(inters, R, angs, glass_vec, prim, rad, decent)
+    init_xs, init_ys = pixel_2D_coords(cal, cal_points, cpar).T
+    
+    pl.imshow(hp, cmap=cm.gray)
+    pl.scatter(targs[:,0], targs[:,1])
+    pl.scatter(init_xs, init_ys, c='r')
+    pl.scatter(init_xs[[0,-1]], init_ys[[0,-1]], c='y')
+
+    pl.show()
 
 # Main part
 import sys, yaml
@@ -151,39 +153,6 @@ for sol in init_sols:
 fits = np.array(fits)
 print fits
 
-def show_current(signum, frame):
-    best_fit = np.argmin(fits)
-    inters = np.zeros(3)
-    inters[:2] = init_sols[best_fit][:2]
-    R = init_sols[best_fit][2]
-    angs = init_sols[best_fit][3:6]
-    pos = get_pos(inters, R, angs)
-    prim = init_sols[best_fit][6:9]
-    rad = init_sols[best_fit][9:12]
-    decent = init_sols[best_fit][12:14]
-
-    print
-    print fits[best_fit]
-    print "pos/ang:"
-    print "%.8f %.8f %.8f" % tuple(pos)
-    print "%.8f %.8f %.8f" % tuple(angs)
-    print
-    print "internal: %.8f %.8f %.8f" % tuple(prim)
-    print "radial distortion: %.8f %.8f %.8f" % tuple(rad)
-    print "decentering: %.8f %.8f" % tuple(decent)
-    
-    cal = gen_calib(inters, R, angs, glass_vec, prim, rad, decent)
-    init_xs, init_ys = pixel_2D_coords(cal, cal_points, cpar).T
-    
-    hp = simple_highpass(image, cpar)
-    pl.imshow(hp, cmap=cm.gray)
-    
-    pl.scatter(targs[:,0], targs[:,1])
-    pl.scatter(init_xs, init_ys, c='r')
-    pl.scatter(init_xs[[0,-1]], init_ys[[0,-1]], c='y')
-
-    pl.show()
-
 signal.signal(signal.SIGTSTP, show_current)
 
 mutation_chance = 0.05
@@ -236,4 +205,5 @@ for it in xrange(num_iters):
     init_sols[loser] = newsol
     fits[loser] = newfit
 
-show_current(0, 0)
+import inspect
+show_current(0, inspect.currentframe())
