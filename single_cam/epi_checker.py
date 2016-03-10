@@ -25,7 +25,7 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         # Switchboard:
         self._marking_bus = QtCore.QSignalMapper(self)
     
-    def init_cams(self, par_file, ov_file, detect_file, image_dicts):
+    def init_cams(self, par_file, ov_file, detect_file, image_dicts, large=False):
         """
         Initializes each camera panel in turn. 
         
@@ -37,15 +37,17 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
             following keys: image (path to image file); ori_file (path to 
             corresponding calibration information .ori file); addpar_file 
             (path to camera distortion parameters file).
+        large - change detection method to template matching.
         """
         cam_panels = self.findChildren(CamPanelEpi)
         cam_nums = range(len(cam_panels))
+        method = 'large' if large else 'default'
         
         for cam_num, cam_dict, cam_panel in zip(cam_nums, image_dicts, cam_panels):
             cal = Calibration()
             cal.from_file(cam_dict['ori_file'], cam_dict['addpar_file'])
             cam_panel.reset(par_file, ov_file, cam_num, cal=cal, 
-                detection_file=detect_file)
+                detection_file=detect_file, detection_method=method)
             cam_panel.set_image(cam_dict['image'])
             cam_panel.set_highpass_visibility(False)
             cam_panel.point_marked.connect(self.point_marked)
@@ -85,8 +87,11 @@ if __name__ == "__main__":
         help="Path to observed volume parameters")
     parser.add_argument('-d', '--detection-file', type=str, 
         default="parameters/targ_rec.par", help="Path to detection parameters")
+    parser.add_argument('--large', '-l', action='store_true', default=False,
+        help="Change detection method to one suitable for large particles.")
     parser.add_argument('scene_args', type=str, 
         help="Path to 4-camera scene parameters (yaml)")
+    parser.add_argument('--corresp', action='store_true', default=False)
     args = parser.parse_args()
     
     cal_args = yaml.load(file(args.scene_args))
@@ -98,6 +103,18 @@ if __name__ == "__main__":
     window.setGeometry(100, 50, 900, 900)
     
     window.show()
-    window.init_cams(args.par_file, args.ov_file, args.detection_file, cal_args)
+    window.init_cams(args.par_file, args.ov_file, args.detection_file, cal_args, 
+        large=args.large)
+    
+    if args.corresp:
+        from calib import count_correspondences
+        
+        cals = []
+        targs = []
+        for cam in window.findChildren(CamPanelEpi):
+            cals.append(cam.calibration())
+            targs.append(cam._targets)
+        
+        count_correspondences(targs, cals, cam._vpar, cam._cpar)
     
     sys.exit(app.exec_())

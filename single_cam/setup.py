@@ -9,7 +9,8 @@ import os
 old_pyptv = os.path.expanduser('~/pyptv-git/src_c')
 inc_dirs = [np.get_include(), old_pyptv]
 
-dep_basenames = ["segmentation.c", "orientation.c", "sortgrid.c"]
+dep_basenames = ["segmentation.c", "orientation.c", "sortgrid.c", 
+                 "correspondences.c"]
 dep_legacy = [ os.path.join(old_pyptv, fn) for fn in dep_basenames ]
 
 ext_mods = [

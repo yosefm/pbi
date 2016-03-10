@@ -26,7 +26,7 @@ class CamPanelEpi(CameraPanel):
         self._marked_patches = []
     
     def reset(self, cpar_file, vpar_file, cam_num, cal=None, 
-        detection_file=None):
+        detection_file=None, detection_method='default'):
         """
         Set up the necessary state for analysing an image.
         
@@ -41,7 +41,7 @@ class CamPanelEpi(CameraPanel):
         cpar = ControlParams(4)
         cpar.read_control_par(cpar_file)
         CameraPanel.reset(self, cpar, cam_num, cal=cal, 
-            detection_file=detection_file)
+            detection_file=detection_file, detection_method=detection_method)
         self._vpar = VolumeParams()
         self._vpar.read_volume_par(vpar_file)
         

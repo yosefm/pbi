@@ -5,7 +5,7 @@
 # Epipolar lines are related because they are used to check the calibration on
 # single frames, so they are brought in too.
 
-from libc.stdlib cimport calloc, realloc, free
+from libc.stdlib cimport malloc, calloc, realloc, free
 
 import numpy as np
 cimport numpy as np
@@ -55,13 +55,25 @@ cdef extern from "optv/imgcoord.h":
 cdef extern from "optv/multimed.h":
     void move_along_ray(double glob_Z, vec3d vertex, vec3d direct, vec3d out)
     
-cdef extern from "typedefs.h":
+cdef extern from "optv/epi.h":
     ctypedef struct coord_2d:
         int pnr
         double x, y
+
+cdef extern from "typedefs.h":
     ctypedef struct coord_3d:
         int pnr
         double x, y, z
+    
+    ctypedef struct n_tupel:
+        pass
+
+cdef extern from "correspondences.h":
+    enum:
+        nmax
+    int correspondences_4 (target pix[][nmax], coord_2d geo[][nmax], int num[],
+        volume_par *vpar, control_par *cpar, calibration cals[], n_tupel *con,
+        int match_counts[])
 
 cdef extern from "orientation.h":
     int orient_v3 (calibration init_cal, control_par *cpar,
@@ -71,8 +83,8 @@ cdef extern from "orientation.h":
         int nfix, coord_3d fix[], coord_2d crd[], calibration *res_cal,
         int nr, int only_show)
 
-cdef public coord_2d crd[4][1] # Temporary, needed by still-unused functions in orientation.c
-cdef public target pix[4][1] # ditto
+cdef public coord_2d crd[4][nmax] # Temporary, needed by still-unused functions in orientation.c
+cdef public target pix[4][nmax] # ditto
 cdef public int nfix # ditto
 cdef public int ncal_points[4] # Same for sortgrid.c
 cdef public int x_calib[4][1000] # ditto
@@ -388,6 +400,21 @@ def epipolar_curve(np.ndarray[ndim=1, dtype=pos_t] image_point,
     
     return line_points
 
+cdef calibration** cal_list2arr(list cals):
+    """
+    Allocate a C array with C calibration objects based on a Python list with
+    Python Calibration objects.
+    """
+    cdef:
+        calibration **calib
+        int num_cals = len(cals)
+    
+    calib = <calibration **>calloc(num_cals, sizeof(calibration *))
+    for cal in range(num_cals):
+        calib[cal] = (<Calibration>cals[cal])._calibration
+    
+    return calib
+    
 def dumbbell_target_func(np.ndarray[ndim=3, dtype=pos_t] targets, 
     ControlParams cparam, cals, db_length, db_weight):
     """
@@ -407,20 +434,16 @@ def dumbbell_target_func(np.ndarray[ndim=3, dtype=pos_t] targets,
     cdef:
         np.ndarray[ndim=2, dtype=pos_t] targ
         vec2d **ctargets
-        calibration **calib
+        calibration **calib = cal_list2arr(cals)
         int cam, num_cams
     
     num_cams = targets.shape[1]
     num_pts = targets.shape[0]
     ctargets = <vec2d **>calloc(num_pts, sizeof(vec2d*))
-    calib = <calibration **>calloc(num_cams, sizeof(calibration *))
     
     for pt in range(num_pts):
         targ = targets[pt]
         ctargets[pt] = <vec2d *>(targ.data)
-        
-    for cam in range(num_cams):
-        calib[cam] = (<Calibration>cals[cam])._calibration
     
     return weighted_dumbbell_precision(ctargets, num_pts, num_cams, 
         cparam._control_par.mm, calib,  db_length, db_weight)
@@ -446,17 +469,13 @@ def point_positions(np.ndarray[ndim=3, dtype=pos_t] targets,
         np.ndarray[ndim=1, dtype=pos_t] res
         np.ndarray[ndim=2, dtype=pos_t] targ
         vec2d **ctargets
-        calibration **calib
+        calibration **calib = cal_list2arr(cals)
         int cam, num_cams
     
     num_cams = targets.shape[1]
     num_pts = targets.shape[0]
     ctargets = <vec2d **>calloc(num_pts, sizeof(vec2d*))
-    calib = <calibration **>calloc(num_cams, sizeof(calibration *))
     res = np.empty((num_pts,3))
-    
-    for cam in range(num_cams):
-        calib[cam] = (<Calibration>cals[cam])._calibration
     
     for pt in range(num_pts):
         targ = targets[pt]
@@ -464,3 +483,81 @@ def point_positions(np.ndarray[ndim=3, dtype=pos_t] targets,
             calib, <vec3d>np.PyArray_GETPTR2(res, pt, 0))
     
     return res
+
+ctypedef target pix_buf[][nmax]
+ctypedef coord_2d geo_buf[][nmax]
+
+def count_correspondences(list img_pts, list cals, VolumeParams vparam,
+    ControlParams cparam):
+    """
+    Get the number of correspondences for each clique size. Don't care about 
+    their actual value for now.
+    
+    Arguments:
+    cals - a list of Calibration objects, each for the camera taking one image.
+    img_pts - a list of len(cals), containing TargetArray objects, each with 
+        the target coordinates of n detections in the respective image.
+    VolumeParams vparam - an object holding observed volume size parameters.
+    ControlParams cparam - an object holding general control parameters.
+    
+    Returns:
+    a tuple with the number of quadruplets, triplets, pairs found and 
+    total number of targets (must be greater than the sum of previous 3).
+    """
+    cdef:
+        double x, y
+        int match
+        int *num = <int *> malloc(len(cals) * sizeof(int))
+        
+        calibration *calib = <calibration *> malloc(
+            len(cals) * sizeof(calibration))
+        TargetArray targ
+        
+        target *pix = <target *> malloc(len(cals)*nmax * sizeof(target))
+        target *curr_pix
+        
+        coord_2d *geo = <coord_2d *> malloc(len(cals)*nmax * sizeof(coord_2d))
+        coord_2d *curr_geo
+        
+        # Return buffers:
+        int *match_counts = <int *> malloc(len(cals) * sizeof(int))
+        n_tupel *corresp_buf = <n_tupel *> malloc(nmax * sizeof(n_tupel))
+    
+    # Move targets to a C array and create the flat-camera version expected
+    # by correspondences_4.
+    for cam in range(len(cals)):
+        calib[cam] =  (<Calibration>cals[cam])._calibration[0]
+        targ = img_pts[cam]
+        curr_pix = &(pix[cam*nmax])
+        curr_geo = &(geo[cam*nmax])
+        
+        num[cam] = len(targ)
+        for pt in range(len(targ)):
+            curr_pix[0] = targ._tarr[pt]
+            curr_pix[0].pnr = pt
+            
+            # Flat image coordinates:
+            pixel_to_metric(&x, &y, curr_pix.x, curr_pix.y, 
+                cparam._control_par);
+            x -= calib[cam].int_par.xh
+            y -= calib[cam].int_par.yh
+            correct_brown_affin (x, y, calib[cam].added_par,
+                &(curr_geo.x), &(curr_geo.y));
+            
+            curr_pix = &(curr_pix[1])
+            curr_geo = &(curr_geo[1])
+    
+    # The biz:
+    match = correspondences_4 (<pix_buf>pix, <geo_buf>geo, num,
+        vparam._volume_par, cparam._control_par, calib, 
+        corresp_buf, match_counts)
+    ret = tuple(match_counts[c] for c in xrange(len(cals)))
+    
+    # Clean up.
+    free(calib)
+    free(pix)
+    free(geo)
+    free(match_counts)
+    free(corresp_buf) # Note this for future returning of correspondences.
+    
+    return ret

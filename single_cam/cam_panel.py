@@ -110,6 +110,9 @@ class CameraPanel(QtGui.QGraphicsView):
     def cam_id(self):
         return self._num
     
+    def calibration(self):
+        return self._cal
+    
     def set_highpass_visibility(self, vis):
         """
         If True, sets the background to show the high-passed image, otherwise 
