@@ -19,6 +19,20 @@ def get_pos(inters, R, angs):
     c = np.cos(angs)
     pos = inters + R*np.r_[ s[1], -c[1]*s[0], c[1]*c[0] ]
     return pos
+
+def get_polar_rep(pos, angs):
+    """
+    Returns the point of intersection with zero Z plane, and distance from it.
+    """
+    s = np.sin(angs)
+    c = np.cos(angs)
+    zdir = -np.r_[ s[1], -c[1]*s[0], c[1]*c[0] ]
+    
+    c = -pos[2]/zdir[2]
+    inters = pos + c*zdir
+    R = np.linalg.norm(inters - pos)
+    
+    return inters[:2], R
     
 def gen_calib(inters, R, angs, glass_vec, prim_point, radial_dist, decent):
     pos = get_pos(inters, R, angs)
@@ -33,6 +47,32 @@ def gen_calib(inters, R, angs, glass_vec, prim_point, radial_dist, decent):
 
     return cal
 
+def choose_breeders(fits, minimize=True):
+    """
+    Chooses two breeers, with chance to breed based on fitness. The fitter 
+    you are, the more chance to breed. If 'minimize' is True, fitness chance
+    is calculated s.t. lower 'fitness' has higher chance.
+    
+    Returns:
+    Two indixes into the fits array.
+    """
+    ranking = np.argsort(fits)
+    fit_range = np.add.reduce(fits) - fits.min()
+    fits_normed = (fits - fits.min())/fit_range
+    
+    if minimize:
+        fits_normed = fits_normed.max()*1.05 - fits_normed[ranking]
+    
+    ranked_fit = np.add.accumulate(fits_normed)
+    if not ranked_fit.any():
+        print ranked_fit
+        return None
+
+    breeding_dice = rnd.rand(2) * ranked_fit[-1]
+    breeders = ranking[np.digitize(breeding_dice, ranked_fit)]
+    
+    return breeders
+    
 def mutation(solution, bounds, chance):
     genes = rnd.rand(len(solution)) < chance
     for gix in xrange(len(solution)):

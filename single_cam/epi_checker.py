@@ -108,12 +108,15 @@ if __name__ == "__main__":
     
     if args.corresp:
         from calib import count_correspondences
+        from mixintel.evolution import get_polar_rep
         
         cals = []
         targs = []
         for cam in window.findChildren(CamPanelEpi):
             cals.append(cam.calibration())
             targs.append(cam._targets)
+            print cals[-1].get_angles()
+            print get_polar_rep(cals[-1].get_pos(), cals[-1].get_angles())
         
         count_correspondences(targs, cals, cam._vpar, cam._cpar)
     

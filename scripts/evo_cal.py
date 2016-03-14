@@ -13,7 +13,7 @@ import numpy.random as rnd
 from matplotlib import cm
 
 from calib import pixel_2D_coords, simple_highpass, detect_ref_points
-from mixintel.evolution import gen_calib, get_pos, mutation, recombination
+from mixintel.evolution import gen_calib, get_pos, mutation, recombination, choose_breeders
 
 wrap_it_up = False
 def interrupt(signum, frame):
@@ -60,10 +60,12 @@ def show_current(signum, frame):
     calibration that produces the fit, and graphs the known/detected points
     for visual match check.
     """
-    fits = frame.f_globals['fits']
-    cal_points = frame.f_globals['cal_points']
-    hp = frame.f_globals['hp']
-    targs = frame.f_globals['targs']
+    import __main__
+    
+    fits = __main__.fits
+    cal_points = __main__.cal_points
+    hp = __main__.hp
+    targs = __main__.targs
     
     best_fit = np.argmin(fits)
     inters = np.zeros(3)
@@ -172,22 +174,12 @@ for it in xrange(num_iters):
         break
 
     # Choose breeders, chance to be chosen weighted by inverse fitness
-    ranking = np.argsort(fits)
-    fit_range = np.add.reduce(fits) - fits.min()
-    fits_normed = (fits - fits.min())/fit_range
-    
-    ranked_fit = np.add.accumulate(fits_normed.max()*1.05 - fits_normed[ranking])
-    if not ranked_fit.any():
-        print ranked_fit
+    breeders = choose_breeders(fits)
+    if breeders is None:
         break
-
-    breeding_dice = rnd.rand(2) * ranked_fit[-1]
-    breeders = ranking[np.digitize(breeding_dice, ranked_fit)]
-    
-    # choose losers
-    loser = fits.argmax()
-    
+        
     # breed into losers
+    loser = fits.argmax()
     newsol = recombination(*init_sols[breeders])
     mutation(newsol, bounds, mutation_chance)
     

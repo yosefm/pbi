@@ -71,6 +71,7 @@ cdef extern from "typedefs.h":
 cdef extern from "correspondences.h":
     enum:
         nmax
+    void quicksort_coord2d_x (coord_2d *crd, int num)
     int correspondences_4 (target pix[][nmax], coord_2d geo[][nmax], int num[],
         volume_par *vpar, control_par *cpar, calibration cals[], n_tupel *con,
         int match_counts[])
@@ -535,6 +536,7 @@ def count_correspondences(list img_pts, list cals, VolumeParams vparam,
         for pt in range(len(targ)):
             curr_pix[0] = targ._tarr[pt]
             curr_pix[0].pnr = pt
+            curr_geo[0].pnr = pt
             
             # Flat image coordinates:
             pixel_to_metric(&x, &y, curr_pix.x, curr_pix.y, 
@@ -542,10 +544,12 @@ def count_correspondences(list img_pts, list cals, VolumeParams vparam,
             x -= calib[cam].int_par.xh
             y -= calib[cam].int_par.yh
             correct_brown_affin (x, y, calib[cam].added_par,
-                &(curr_geo.x), &(curr_geo.y));
+                &(curr_geo[0].x), &(curr_geo[0].y));
             
             curr_pix = &(curr_pix[1])
             curr_geo = &(curr_geo[1])
+        
+        quicksort_coord2d_x (&(geo[cam*nmax]), len(targ))
     
     # The biz:
     match = correspondences_4 (<pix_buf>pix, <geo_buf>geo, num,
