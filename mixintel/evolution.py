@@ -72,6 +72,32 @@ def choose_breeders(fits, minimize=True):
     breeders = ranking[np.digitize(breeding_dice, ranked_fit)]
     
     return breeders
+
+def cauchy_mutation(solution, bounds, chance, stds_in_range=5):
+    """
+    The Cauchy mutation operator prefers small mutations, unlike the naive
+    uniform-distribution ``mutation()``. However, it still has heavy tails, 
+    making it more globally oriented than the often used Normal distribution.
+    
+    Arguments:
+    solution - a vector of v decision variables.
+    bounds - (v,2) array, fir min, max bound of each variable.
+    chance - the chance of any gene in the chromosome to undergo mutation.
+    stds_in_range - scales each mutation by (variable range / stds_in_range).
+    """
+    genes = rnd.rand(len(solution)) < chance
+    mute = solution[genes]
+    bdg = bounds[genes]
+    
+    mute += (bdg[:,1] - bdg[:,0]) / stds_in_range * \
+        rnd.standard_cauchy(genes.sum())
+    
+    under = mute < bdg[:,0]
+    over = mute > bdg[:,1]
+    mute[under] = bdg[under,0]
+    mute[over] = bdg[over,0]
+    
+    solution[genes] = mute
     
 def mutation(solution, bounds, chance):
     genes = rnd.rand(len(solution)) < chance
