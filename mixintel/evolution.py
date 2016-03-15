@@ -5,6 +5,9 @@ Basic operations for evolutionary algorithms.
 Created on Wed Mar  9 10:56:55 2016
 
 @author: yosef
+
+references:
+[1] Koenig A.C, A Study of Mutation Methods for Evolutionary Algorithms; 2002
 """
 
 import numpy as np
@@ -78,6 +81,8 @@ def cauchy_mutation(solution, bounds, chance, stds_in_range=5):
     The Cauchy mutation operator prefers small mutations, unlike the naive
     uniform-distribution ``mutation()``. However, it still has heavy tails, 
     making it more globally oriented than the often used Normal distribution.
+    
+    See also: [1]
     
     Arguments:
     solution - a vector of v decision variables.
