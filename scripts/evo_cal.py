@@ -117,30 +117,45 @@ hp = simple_highpass(image, cpar)
 tarr = detect_ref_points(hp, cam, cpar)
 targs = np.array([t.pos() for t in tarr])
 
-pop_size = 1500
+pop_size = 2500
 #bounds = [(100., 200.), (-120, 0), (-150, -400), (-1, 0), (-1, 0), (-0.1, 0.1)]
 #bounds = [(100., 200.), (-120, 0), (150, 400), (np.pi - 1, np.pi + 1), (-1, 0), (-0.1, 0.1)]
 ##bounds = [(100., 200.), (-120, 0), (-150, -400), (-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi)]
 if cam == 0:
     bounds = [(-20.,20.), (-20.,20.), # offset
               (210.,300.), # R
-              (-0.3, 0.3), (np.pi-0.3, np.pi+0.3), (-0.5, 0.5), # angles
-              (-0.05, 0.05), (-0.05, 0.05), (70, 90), # primary point
+              (-0., 0.6), (-0.6, 0.), (-0.5, 0.5), # angles
+              (-0.05, 0.05), (-0.05, 0.05), (60, 100), # primary point
               (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
               (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
     ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 1:
-    #bounds = [(-100., 100.), (-120, 0), (-200, -400), (-1, 1), (np.pi/2, 1.5*np.pi), (-1, 1)]
-    bounds = [(-20.,20.), (-20.,20.), (210.,300.), (-0.3, 0.3), (np.pi-0.3, np.pi+0.3), (-0.5, 0.5)]
+    bounds = [(-20.,20.), (-20.,20.), # offset
+              (210.,300.), # R
+              (-0., 0.6), (-0., 0.6), (-0.5, 0.5), # angles
+              (-0.05, 0.05), (-0.05, 0.05), (60, 100), # primary point
+              (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
+              (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
+    ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 2:
-    #bounds = [(-150., 150.), (-120, 0), (250, 500), (-1, 1), (-1, 1), (-1, 1)]
-    bounds = [(-20.,20.), (-20.,20.), (210.,300.), (-0.4, 0.4), (-0.3, 0.3), (-0.3, 0.3)]
+    bounds = [(-20.,20.), (-20.,20.), # offset
+              (210.,300.), # R
+              (-0.6, 0.), (-0.6, 0.), (-0.5, 0.5), # angles
+              (-10., 10.), (-10., 10.), (60, 100), # primary point
+              (-2e-4, 2e-4), (-1e-4, 1e-4), (-1e-4, 1e-4), # radial distortion
+              (-1e-4, 1e-4), (-1e-4, 1e-4) # decentering
+    ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 3:
-    #bounds = [(50., 250.), (-120, 0), (200, 400), (-1, 1), (-1, 1), (-1, 1)]
-    bounds = [(-20.,20.), (-20.,20.), (210.,300.), (-0.3, 0.3), (-0.3, 0.3), (-0.3, 0.3)]
+    bounds = [(-20.,20.), (-20.,20.), # offset
+              (210.,300.), # R
+              (-0.6, 0.), (-0., 0.6), (-0.5, 0.5), # angles
+              (-0.05, 0.05), (-0.05, 0.05), (60, 100), # primary point
+              (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
+              (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
+    ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 
 ranges = np.r_[[(maxb - minb) for minb, maxb in bounds]]
