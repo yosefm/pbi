@@ -12,6 +12,7 @@ from PyQt4 import QtCore, QtGui
 from cam_panel import CameraPanel
 from optv.calibration import Calibration
 from optv.parameters import VolumeParams, ControlParams
+from mixintel.openptv import control_params
 from calib import epipolar_curve
 
 class CamPanelEpi(CameraPanel):
@@ -31,15 +32,21 @@ class CamPanelEpi(CameraPanel):
         Set up the necessary state for analysing an image.
         
         Arguments:
-        cpar_file - path to control parameters file (e.g. ptv.par)
+        cpar_file - path to control parameters file (e.g. ptv.par) or a dict
+            as read from YAML configuration.
         vpar_file - path to observed volume parameters (e.g. criteria.par)
         cam_num - identifier for this camera.
         cal - a Calibration object with camera parameters. If None, one will be 
             created.
         detection_file - optional path to target detection parameters.
         """
-        cpar = ControlParams(4)
-        cpar.read_control_par(cpar_file)
+        if type(cpar_file) is str:
+            cpar = ControlParams(4)
+            cpar.read_control_par(cpar_file)
+        else: # assume dict
+            print cpar_file
+            cpar = control_params(**cpar_file)
+            
         CameraPanel.reset(self, cpar, cam_num, cal=cal, 
             detection_file=detection_file, detection_method=detection_method)
         self._vpar = VolumeParams()

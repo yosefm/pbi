@@ -25,13 +25,13 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         # Switchboard:
         self._marking_bus = QtCore.QSignalMapper(self)
     
-    def init_cams(self, par_file, ov_file, detect_file, image_dicts, large=False):
+    def init_cams(self, cpar, ov_file, detect_file, image_dicts, large=False):
         """
         Initializes each camera panel in turn. 
         
         Arguments:
-        par_file - path to .par file holding common scene data such as image 
-            size.
+        cpar - dictionary of common scene data such as image size, as needed
+            by mixintel.openptv.control_params()
         ov_file - path to .par file holding observed volume parameters.
         image_dicts - a list of dicts, one per camera. The dict contains the 
             following keys: image (path to image file); ori_file (path to 
@@ -42,11 +42,12 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         cam_panels = self.findChildren(CamPanelEpi)
         cam_nums = range(len(cam_panels))
         method = 'large' if large else 'default'
+        cpar.setdefault('cams', len(cam_nums))
         
         for cam_num, cam_dict, cam_panel in zip(cam_nums, image_dicts, cam_panels):
             cal = Calibration()
             cal.from_file(cam_dict['ori_file'], cam_dict['addpar_file'])
-            cam_panel.reset(par_file, ov_file, cam_num, cal=cal, 
+            cam_panel.reset(cpar, ov_file, cam_num, cal=cal, 
                 detection_file=detect_file, detection_method=method)
             cam_panel.set_image(cam_dict['image'])
             cam_panel.set_highpass_visibility(False)
@@ -82,7 +83,6 @@ if __name__ == "__main__":
     
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('par_file', type=str, help="Path to main parameters")
     parser.add_argument('ov_file', type=str,
         help="Path to observed volume parameters")
     parser.add_argument('-d', '--detection-file', type=str, 
@@ -94,7 +94,9 @@ if __name__ == "__main__":
     parser.add_argument('--corresp', action='store_true', default=False)
     args = parser.parse_args()
     
-    cal_args = yaml.load(file(args.scene_args))
+    yaml_args = yaml.load(file(args.scene_args))
+    cal_args = yaml_args['images']
+    control_args = yaml_args['scene']
     
     app = QtGui.QApplication([])
     window = SceneWindow()
@@ -103,7 +105,7 @@ if __name__ == "__main__":
     window.setGeometry(100, 50, 900, 900)
     
     window.show()
-    window.init_cams(args.par_file, args.ov_file, args.detection_file, cal_args, 
+    window.init_cams(control_args, args.ov_file, args.detection_file, cal_args, 
         large=args.large)
     
     if args.corresp:
