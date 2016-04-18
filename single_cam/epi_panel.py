@@ -12,7 +12,6 @@ from PyQt4 import QtCore, QtGui
 from cam_panel import CameraPanel
 from optv.calibration import Calibration
 from optv.parameters import VolumeParams, ControlParams
-from mixintel.openptv import control_params
 from calib import epipolar_curve
 
 class CamPanelEpi(CameraPanel):
@@ -45,7 +44,7 @@ class CamPanelEpi(CameraPanel):
             cpar.read_control_par(cpar_file)
         else: # assume dict
             print cpar_file
-            cpar = control_params(**cpar_file)
+            cpar = ControlParams(**cpar_file)
             
         CameraPanel.reset(self, cpar, cam_num, cal=cal, 
             detection_file=detection_file, detection_method=detection_method)
