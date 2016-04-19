@@ -31,6 +31,8 @@ cdef extern from "optv/orientation.h":
     ctypedef double vec2d[2]
     ctypedef struct orient_par:
         pass
+    enum:
+        NPAR
     
     double weighted_dumbbell_precision(vec2d** targets, int num_targs, 
         int num_cams, mm_np *multimed_pars, calibration* cals[], 
@@ -242,16 +244,13 @@ def match_detection_to_ref(Calibration cal,
         target *sorted_targs
         TargetArray t = TargetArray()
     
-    print ref_pts
     ref_pts = np.ascontiguousarray(ref_pts)
-    print ref_pts, len(ref_pts)
     ref_coord = <vec3d *>ref_pts.data
     
     sorted_targs = sortgrid(cal._calibration, cparam._control_par, 
         len(ref_pts), ref_coord, len(img_pts), eps, img_pts._tarr)
     
     t.set(sorted_targs, len(ref_pts), 1)
-    print ref_pts
     return t
 
 def full_calibration(Calibration cal,
@@ -275,6 +274,7 @@ def full_calibration(Calibration cal,
     ret - (r,2) array, the residuals in the x and y direction for r points used
         in orientation.
     used - r-length array, indices into target array of targets used.
+    err_est - error estimation per calibration DOF. We 
     
     Raises:
     ValueError if iteration did not converge.
@@ -283,15 +283,17 @@ def full_calibration(Calibration cal,
         vec3d *ref_coord
         np.ndarray[ndim=2, dtype=pos_t] ret
         np.ndarray[ndim=1, dtype=np.int_t] used
+        np.ndarray[ndim=1, dtype=pos_t] err_est
         orient_par *orip
-        double sigmabeta[20], *residuals
+        double *residuals
     
     ref_pts = np.ascontiguousarray(ref_pts)
     ref_coord = <vec3d *>ref_pts.data
     orip = read_orient_par("parameters/orient.par")
     
+    err_est = np.empty((NPAR + 1) * sizeof(double))
     residuals = orient(cal._calibration, cparam._control_par, len(ref_pts), 
-        ref_coord, img_pts._tarr, orip, sigmabeta)
+        ref_coord, img_pts._tarr, orip, <double *>err_est.data)
     
     free(orip)
     
@@ -307,7 +309,7 @@ def full_calibration(Calibration cal,
         used[ix] = img_pts[ix].pnr()
     
     free(residuals)
-    return ret, used
+    return ret, used, err_est
 
 def epipolar_curve(np.ndarray[ndim=1, dtype=pos_t] image_point,
     Calibration origin_cam, Calibration project_cam, int num_points,

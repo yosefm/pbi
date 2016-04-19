@@ -337,8 +337,9 @@ class CameraPanel(QtGui.QGraphicsView):
             patch = self._residual_patches.pop()
             self._scene.removeItem(patch)
         
-        residuals, targ_ix = full_calibration(self._cal, cal_points, self._targets, 
-            self._cpar)
+        residuals, targ_ix, err_est = full_calibration(self._cal, cal_points, 
+            self._targets, self._cpar)
+        self.report_orientation(err_est)
         
         # Quiver plot of the residuals, scaled to arbitrary size.
         scale = 5000
@@ -351,6 +352,53 @@ class CameraPanel(QtGui.QGraphicsView):
                 pos[0], pos[1], rpos[0], rpos[1], pen=pen))
         
         self.cal_changed.emit(self._cal)
+    
+    def report_orientation(self, err_est):
+        """
+        Terminal output of the current calibration, +- errors as estimated by
+        the orientation algorithm.
+        
+        Arguments:
+        err_est - an array with the respective error estimates for each 
+            calibration parameter.
+        """
+        from scipy.constants import degree
+        
+        print "\n|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+        print "\nResults after iteration:\n"
+        print "sigma0 = %6.2f micron" % (err_est[-1]*1000)
+        
+        x0, y0, z0 = self._cal.get_pos()
+        print "X0 =    %8.3f   +/- %8.3f" % (x0, err_est[0])
+        print "Y0 =    %8.3f   +/- %8.3f" % (y0, err_est[1])
+        print "Z0 =    %8.3f   +/- %8.3f" % (z0, err_est[2])
+        
+        omega, phi, kappa = self._cal.get_angles()
+        print "omega = %8.4f   +/- %8.4f degrees" % \
+            (omega/degree, err_est[3]/degree)
+        print "phi   = %8.4f   +/- %8.4f degrees" % \
+            (phi/degree, err_est[4]/degree)
+        print "kappa = %8.4f   +/- %8.4f degrees" % \
+            (kappa/degree, err_est[5]/degree)
+        
+        cc, xh, yh = self._cal.get_primary_point()
+        print "camera const  = %8.5f   +/- %8.5f" % (cc, err_est[6])
+        print "xh            = %8.5f   +/- %8.5f" % (xh, err_est[7])
+        print "yh            = %8.5f   +/- %8.5f" % (xh, err_est[8])
+        
+        k1, k2, k3 = self._cal.get_radial_distortion()
+        print "k1            = %8.5f   +/- %8.5f" % (k1, err_est[9])
+        print "k2            = %8.5f   +/- %8.5f" % (k2, err_est[10])
+        print "k3            = %8.5f   +/- %8.5f" % (k3, err_est[11])
+        
+        p1, p2 = self._cal.get_decentering()
+        print "p1            = %8.5f   +/- %8.5f" % (p1, err_est[12])
+        print "p2            = %8.5f   +/- %8.5f" % (p2, err_est[13])
+        
+        scx, she = self._cal.get_affine()
+        print "scale for x'  = %8.5f   +/- %8.5f" % (scx, err_est[14])
+        print "shearing      = %8.5f   +/- %8.5f degrees" % \
+            (she/degree, err_est[15]/degree)
         
     def set_residuals_visibility(self, vis):
         """
