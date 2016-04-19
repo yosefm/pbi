@@ -61,10 +61,6 @@ cdef extern from "optv/epi.h":
         double x, y
 
 cdef extern from "typedefs.h":
-    ctypedef struct coord_3d:
-        int pnr
-        double x, y, z
-    
     ctypedef struct n_tupel:
         pass
 
@@ -117,7 +113,7 @@ def detect_ref_points(np.ndarray img, int cam, ControlParams cparam,
     if ret == NULL:
         free(targs)
         raise MemoryError("Failed to reallocate target array.")
-
+    
     t.set(ret, num_targs, 1)
     return t
 
@@ -175,28 +171,6 @@ def image_coords_metric(np.ndarray[ndim=2, dtype=pos_t] arr,
     
     return metric
 
-cdef coord_3d *array2coord_3d(np.ndarray[ndim=2, dtype=pos_t] arr):
-    """
-    Convert an array of 3D points to an array of coord_3d points. Number the
-    resulting coord_3d objects (the pnr attribute) by the index of the point
-    in ``arr``.
-    
-    Arguments:
-    np.ndarray[ndim=2, dtype=pos_t] arr - (n,3) array to convert
-    
-    returns:
-    coord3d *ret - pointer to the memory allocated for the converted array.
-    """
-    cdef coord_3d *ret = <coord_3d *>calloc(len(arr), sizeof(coord_3d))
-    
-    for ptx, pt in enumerate(arr):
-        ret[ptx].x = pt[0]
-        ret[ptx].y = pt[1]
-        ret[ptx].z = pt[2]
-        ret[ptx].pnr = ptx
-    
-    return ret
-    
 def external_calibration(Calibration cal, 
     np.ndarray[ndim=2, dtype=pos_t] ref_pts, 
     np.ndarray[ndim=2, dtype=pos_t] img_pts,
@@ -218,27 +192,23 @@ def external_calibration(Calibration cal,
     True if iteration succeeded, false otherwise.
     """
     cdef:
-        target *metric_coord
+        target *targs
         vec3d *ref_coord
     
     ref_pts = np.ascontiguousarray(ref_pts)
     ref_coord = <vec3d *>ref_pts.data
     
     # Convert pixel coords to metric coords:
-    metric_coord = <target *>calloc(len(img_pts), sizeof(target))
+    targs = <target *>calloc(len(img_pts), sizeof(target))
     
     for ptx, pt in enumerate(img_pts):
-        pixel_to_metric(&(metric_coord[ptx].x), &(metric_coord[ptx].y),
-                        pt[0], pt[1], cparam._control_par)
-        correct_brown_affin(metric_coord[ptx].x, metric_coord[ptx].y, 
-            cal._calibration.added_par, 
-            &(metric_coord[ptx].x), &(metric_coord[ptx].y))
+        targs[ptx].x = pt[0]
+        targs[ptx].y = pt[1]
     
     success = raw_orient (cal._calibration, cparam._control_par, 
-        len(ref_pts), ref_coord, metric_coord)
+        len(ref_pts), ref_coord, targs)
     
-    free(metric_coord);
-    free(ref_coord);
+    free(targs);
     
     return (True if success else False)
 
@@ -272,14 +242,16 @@ def match_detection_to_ref(Calibration cal,
         target *sorted_targs
         TargetArray t = TargetArray()
     
+    print ref_pts
     ref_pts = np.ascontiguousarray(ref_pts)
+    print ref_pts, len(ref_pts)
     ref_coord = <vec3d *>ref_pts.data
     
-    sortgrid(cal._calibration, cparam._control_par, 
+    sorted_targs = sortgrid(cal._calibration, cparam._control_par, 
         len(ref_pts), ref_coord, len(img_pts), eps, img_pts._tarr)
     
-    free(ref_coord);
-    t.set(sorted_targs, len(img_pts), 1)
+    t.set(sorted_targs, len(ref_pts), 1)
+    print ref_pts
     return t
 
 def full_calibration(Calibration cal,
@@ -308,31 +280,20 @@ def full_calibration(Calibration cal,
     ValueError if iteration did not converge.
     """
     cdef:
-        target *metric_coord
         vec3d *ref_coord
         np.ndarray[ndim=2, dtype=pos_t] ret
         np.ndarray[ndim=1, dtype=np.int_t] used
         orient_par *orip
         double sigmabeta[20], *residuals
-     
+    
     ref_pts = np.ascontiguousarray(ref_pts)
     ref_coord = <vec3d *>ref_pts.data
-    
-    # Pixel to metric coordinates, with preserved internal numbering.
-    metric_coord = <target *>calloc(len(img_pts), sizeof(target))
-    for ptx, pt in enumerate(img_pts):
-        x, y = pt.pos() # Using the Python object here, speed not necessary.
-        pixel_to_metric(&(metric_coord[ptx].x), &(metric_coord[ptx].y),
-            x, y, cparam._control_par)
-        metric_coord[ptx].pnr = pt.pnr()
-    
     orip = read_orient_par("parameters/orient.par")
+    
     residuals = orient(cal._calibration, cparam._control_par, len(ref_pts), 
-        ref_coord, metric_coord, orip, sigmabeta)
+        ref_coord, img_pts._tarr, orip, sigmabeta)
     
     free(orip)
-    free(ref_coord)
-    free(metric_coord)
     
     if residuals == NULL:
         free(residuals)
@@ -343,7 +304,7 @@ def full_calibration(Calibration cal,
     
     for ix in range(len(img_pts)):
         ret[ix] = (residuals[2*ix], residuals[2*ix + 1])
-        used[ix] = metric_coord[ix].pnr
+        used[ix] = img_pts[ix].pnr()
     
     free(residuals)
     return ret, used
