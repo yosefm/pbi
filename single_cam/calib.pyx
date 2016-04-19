@@ -15,14 +15,9 @@ from optv.calibration cimport Calibration, Exterior, Interior, Glass, ap_52, \
     calibration
 from optv.parameters cimport ControlParams, VolumeParams, mm_np, control_par, \
     volume_par
-
-cdef extern from "optv/trafo.h":
-    void metric_to_pixel(double *x_pixel, double* y_pixel,
-        double x_metric, double y_metric, control_par* parameters)
-    void pixel_to_metric(double *x_metric, double *y_metric,
-        double x_pixel, double y_pixel, control_par* parameters)
-    void correct_brown_affin (double x, double y, ap_52 ap,
-        double *x1, double *y1)
+from optv.transforms cimport metric_to_pixel, pixel_to_metric, \
+    correct_brown_affin
+from optv.vec_utils cimport vec3d
 
 cdef extern from "optv/ray_tracing.h":
     void ray_tracing(double x, double y, calibration* cal, mm_np mm,
@@ -32,19 +27,24 @@ cdef extern from "optv/image_processing.h":
     void prepare_image(unsigned char *img, unsigned char *img_hp, 
         int dim_lp, int filter_hp, char *filter_file, control_par *cpar)
 
-cdef extern from "optv/vec_utils.h":
-    ctypedef double vec3d[3]
-
 cdef extern from "optv/orientation.h":
     ctypedef double vec2d[2]
+    ctypedef struct orient_par:
+        pass
+    
     double weighted_dumbbell_precision(vec2d** targets, int num_targs, 
         int num_cams, mm_np *multimed_pars, calibration* cals[], 
         int db_length, double db_weight)
     double point_position(vec2d targets[], int num_cams, mm_np *multimed_pars,
         calibration* cals[], vec3d res);
-
+    int raw_orient(calibration* cal, control_par *cpar, int nfix, vec3d fix[], 
+        target pix[]);
+    double* orient (calibration* cal_in, control_par *cpar, int nfix, 
+        vec3d fix[], target pix[], orient_par *flags, double sigmabeta[20])
+    orient_par* read_orient_par(char *filename)
+    
 cdef extern from "image_processing.h":
-    void targ_rec(char *img0, char *img, char *par_file,
+    void targ_rec(unsigned char *img0, unsigned char *img, char *par_file,
         int xmin, int xmax, int ymin, int ymax, target *pix, int nr, int* num,
             control_par *cpar)
 
@@ -76,24 +76,9 @@ cdef extern from "correspondences.h":
         volume_par *vpar, control_par *cpar, calibration cals[], n_tupel *con,
         int match_counts[])
 
-cdef extern from "orientation.h":
-    int orient_v3 (calibration init_cal, control_par *cpar,
-        int nfix, coord_3d fix[], coord_2d crd[], calibration *res_cal,
-        int nr, double resid_x[], double resid_y[], int pixnr[], int *num_used)
-    int raw_orient_v3 (calibration init_cal, control_par *cpar,
-        int nfix, coord_3d fix[], coord_2d crd[], calibration *res_cal,
-        int nr, int only_show)
-
-cdef public coord_2d crd[4][nmax] # Temporary, needed by still-unused functions in orientation.c
-cdef public target pix[4][nmax] # ditto
-cdef public int nfix # ditto
-cdef public int ncal_points[4] # Same for sortgrid.c
-cdef public int x_calib[4][1000] # ditto
-cdef public int y_calib[4][1000] # ditto
-cdef public int z_calib[4][1000] # ditto
-
-cdef extern void sortgrid_man(calibration *cal, int nfix, coord_3d fix[], 
-    int num, target pix[], int n_img, control_par *cpar)
+cdef extern from "optv/sortgrid.h":
+    target* sortgrid(calibration *cal, control_par *cpar, 
+        int nfix, vec3d fix[], int num, int eps, target pix[])
 
 def simple_highpass(np.ndarray img, ControlParams cparam):
     cdef np.ndarray hp = np.empty_like(img)
@@ -124,7 +109,7 @@ def detect_ref_points(np.ndarray img, int cam, ControlParams cparam,
         np.ndarray img0 = img.copy()
         int num_targs
     
-    targ_rec(<char *>img.data, <char *>img0.data, detection_pars,
+    targ_rec(<unsigned char *>img.data, <unsigned char *>img0.data, detection_pars,
         0, cparam._control_par[0].imx, 1, cparam._control_par[0].imy, targs, 
         cam, &num_targs, cparam._control_par)
     
@@ -233,11 +218,14 @@ def external_calibration(Calibration cal,
     True if iteration succeeded, false otherwise.
     """
     cdef:
-        coord_2d *metric_coord
-        coord_3d *ref_coord = array2coord_3d(ref_pts)
+        target *metric_coord
+        vec3d *ref_coord
+    
+    ref_pts = np.ascontiguousarray(ref_pts)
+    ref_coord = <vec3d *>ref_pts.data
     
     # Convert pixel coords to metric coords:
-    metric_coord = <coord_2d *>calloc(len(img_pts), sizeof(coord_2d))
+    metric_coord = <target *>calloc(len(img_pts), sizeof(target))
     
     for ptx, pt in enumerate(img_pts):
         pixel_to_metric(&(metric_coord[ptx].x), &(metric_coord[ptx].y),
@@ -246,8 +234,8 @@ def external_calibration(Calibration cal,
             cal._calibration.added_par, 
             &(metric_coord[ptx].x), &(metric_coord[ptx].y))
     
-    success = raw_orient_v3(cal._calibration[0], cparam._control_par, 
-        len(ref_pts), ref_coord, metric_coord, cal._calibration, 0, 0)
+    success = raw_orient (cal._calibration, cparam._control_par, 
+        len(ref_pts), ref_coord, metric_coord)
     
     free(metric_coord);
     free(ref_coord);
@@ -256,7 +244,7 @@ def external_calibration(Calibration cal,
 
 def match_detection_to_ref(Calibration cal,
     np.ndarray[ndim=2, dtype=pos_t] ref_pts, TargetArray img_pts,
-    ControlParams cparam):
+    ControlParams cparam, eps=25):
     """
     Creates a TargetArray where the targets are those for which a point in the
     projected reference is close enough to be considered a match, ordered by 
@@ -273,14 +261,26 @@ def match_detection_to_ref(Calibration cal,
     TargetArray img_pts - detected points to match to known 3D positions.
         Modified inplace.
     ControlParams cparam - an object holding general control parameters.
+    int eps - pixel radius of neighbourhood around detection to search for
+        closest projection.
+    
+    Returns:
+    TargetArray holding the sorted targets.
     """
     cdef:
-        coord_3d *ref_coord = array2coord_3d(ref_pts)
+        vec3d *ref_coord
+        target *sorted_targs
+        TargetArray t = TargetArray()
     
-    sortgrid_man(cal._calibration, len(ref_pts), ref_coord, len(img_pts), 
-        img_pts._tarr, 0, cparam._control_par)
+    ref_pts = np.ascontiguousarray(ref_pts)
+    ref_coord = <vec3d *>ref_pts.data
+    
+    sortgrid(cal._calibration, cparam._control_par, 
+        len(ref_pts), ref_coord, len(img_pts), eps, img_pts._tarr)
     
     free(ref_coord);
+    t.set(sorted_targs, len(img_pts), 1)
+    return t
 
 def full_calibration(Calibration cal,
     np.ndarray[ndim=2, dtype=pos_t] ref_pts, TargetArray img_pts,
@@ -308,39 +308,44 @@ def full_calibration(Calibration cal,
     ValueError if iteration did not converge.
     """
     cdef:
-        coord_2d *metric_coord
-        coord_3d *ref_coord = array2coord_3d(ref_pts)
-        double resid_x[1000]
-        double resid_y[1000]
-        int pixnr[1000];
-        int num_used
+        target *metric_coord
+        vec3d *ref_coord
         np.ndarray[ndim=2, dtype=pos_t] ret
         np.ndarray[ndim=1, dtype=np.int_t] used
+        orient_par *orip
+        double sigmabeta[20], *residuals
+     
+    ref_pts = np.ascontiguousarray(ref_pts)
+    ref_coord = <vec3d *>ref_pts.data
     
     # Pixel to metric coordinates, with preserved internal numbering.
-    metric_coord = <coord_2d *>calloc(len(img_pts), sizeof(coord_2d))
+    metric_coord = <target *>calloc(len(img_pts), sizeof(target))
     for ptx, pt in enumerate(img_pts):
         x, y = pt.pos() # Using the Python object here, speed not necessary.
         pixel_to_metric(&(metric_coord[ptx].x), &(metric_coord[ptx].y),
             x, y, cparam._control_par)
         metric_coord[ptx].pnr = pt.pnr()
     
-    success = orient_v3(cal._calibration[0], cparam._control_par, len(ref_pts), 
-        ref_coord, metric_coord, cal._calibration, 0, resid_x, resid_y, pixnr, 
-        &num_used);
+    orip = read_orient_par("parameters/orient.par")
+    residuals = orient(cal._calibration, cparam._control_par, len(ref_pts), 
+        ref_coord, metric_coord, orip, sigmabeta)
     
-    free(ref_coord);
-    free(metric_coord);
+    free(orip)
+    free(ref_coord)
+    free(metric_coord)
     
-    if success == 0:
+    if residuals == NULL:
+        free(residuals)
         raise ValueError("Orientation iteration failed, need better setup.")
     
-    ret = np.empty((num_used, 2))
-    used = np.empty(num_used, dtype=np.int_)
-    for ix in range(num_used):
-        ret[ix] = (resid_x[ix], resid_y[ix])
-        used[ix] = pixnr[ix]
+    ret = np.empty((len(img_pts), 2))
+    used = np.empty(len(img_pts), dtype=np.int_)
     
+    for ix in range(len(img_pts)):
+        ret[ix] = (residuals[2*ix], residuals[2*ix + 1])
+        used[ix] = metric_coord[ix].pnr
+    
+    free(residuals)
     return ret, used
 
 def epipolar_curve(np.ndarray[ndim=1, dtype=pos_t] image_point,

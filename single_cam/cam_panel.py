@@ -190,28 +190,39 @@ class CameraPanel(QtGui.QGraphicsView):
         if self._manual_detection_nums is not None:
             self._next_manual -= 1
     
-    def detect_targets(self):
+    def set_targets(self, targs):
+        """
+        Removes existing detected target set and replaces it with a new one.
+        
+        Arguments:
+        targs - a TargetArray holding the new set.
+        """
+        self._targets = targs
+        
         # Clear previous detections:
         while len(self._detected_patches):
             patch = self._detected_patches.pop()
             self._scene.removeItem(patch)
         
-        # New detection from C:
-        if self._detect_method == 'large':
-            self._targets = detect_large_particles(self._orig_img)
-        elif self._detect_path is None:
-            self._targets = detect_ref_points(self._hp_img, self._num, self._cpar)
-        else:
-            self._targets = detect_ref_points(self._hp_img, self._num,
-                self._cpar, self._detect_path)
-        
-        # Now draw it:
+        # Now draw new set:
         blue = QtGui.QPen(QtGui.QColor("blue"))
         rad = 5
         for targ in self._targets:
             x, y = targ.pos()
             p = self._scene.addEllipse(x - rad, y - rad, 2*rad, 2*rad, pen=blue)
             self._detected_patches.append(p)
+        
+    def detect_targets(self):
+        # New detection from C:
+        if self._detect_method == 'large':
+            targs = detect_large_particles(self._orig_img)
+        elif self._detect_path is None:
+            targs = detect_ref_points(self._hp_img, self._num, self._cpar)
+        else:
+            targs = detect_ref_points(self._hp_img, self._num,
+                self._cpar, self._detect_path)
+        
+        self.set_targets(targs)
     
     def get_detections(self):
         """
@@ -288,7 +299,10 @@ class CameraPanel(QtGui.QGraphicsView):
         if len(cal_points) > len( self._targets):
             raise ValueError("Insufficient detected points, need at least as"
                 "many as fixed points")
-        match_detection_to_ref(self._cal, cal_points, self._targets, self._cpar)
+        
+        sorted_targs = match_detection_to_ref(self._cal, cal_points, 
+            self._targets, self._cpar)
+        self.set_targets(sorted_targs)
         
         rad = 5
         text_size = 20
