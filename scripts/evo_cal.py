@@ -123,18 +123,18 @@ pop_size = 2500
 ##bounds = [(100., 200.), (-120, 0), (-150, -400), (-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi)]
 if cam == 0:
     bounds = [(-20.,20.), (-20.,20.), # offset
-              (210.,300.), # R
+              (210.,280.), # R
               (-0., 0.6), (-0.6, 0.), (-0.5, 0.5), # angles
-              (-0.05, 0.05), (-0.05, 0.05), (60, 100), # primary point
-              (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
-              (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
+              (-2., 2.), (-2., 2.), (60, 100), # primary point
+              (-4e-5, 4e-5), (-2e-5, 2e-5), (-1e-5, 1e-5), # radial distortion
+              (-1e-5, 1e-5), (-1e-5, 1e-5) # decentering
     ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 1:
     bounds = [(-20.,20.), (-20.,20.), # offset
               (210.,300.), # R
               (-0., 0.6), (-0., 0.6), (-0.5, 0.5), # angles
-              (-0.05, 0.05), (-0.05, 0.05), (60, 100), # primary point
+              (-0.5, 0.5), (-0.5, 0.5), (60, 100), # primary point
               (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
               (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
     ]
@@ -143,18 +143,18 @@ elif cam == 2:
     bounds = [(-20.,20.), (-20.,20.), # offset
               (210.,300.), # R
               (-0.6, 0.), (-0.6, 0.), (-0.5, 0.5), # angles
-              (-10., 10.), (-10., 10.), (60, 100), # primary point
-              (-2e-4, 2e-4), (-1e-4, 1e-4), (-1e-4, 1e-4), # radial distortion
-              (-1e-4, 1e-4), (-1e-4, 1e-4) # decentering
+              (-2., 2.), (-2., 2.), (60, 100), # primary point
+              (-4e-4, 4e-4), (-2e-5, 2e-5), (-1e-5, 1e-5), # radial distortion
+              (-1e-3, 1e-3), (-2e-4, 2e-4) # decentering
     ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 3:
     bounds = [(-20.,20.), (-20.,20.), # offset
               (210.,300.), # R
               (-0.6, 0.), (-0., 0.6), (-0.5, 0.5), # angles
-              (-0.05, 0.05), (-0.05, 0.05), (60, 100), # primary point
-              (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
-              (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
+              (-5., 5.), (-5., 5.), (60, 100), # primary point
+              (-2e-5, 2e-5), (-2e-5, 2e-5), (-1e-5, 1e-5), # radial distortion
+              (-1e-3, 1e-3), (-2e-4, 2e-4) # decentering
     ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 
@@ -175,11 +175,11 @@ signal.signal(signal.SIGTSTP, show_current)
 mutation_chance = 0.05
 niche_size = len(bounds) / 2.
 niche_penalty = 2.
-num_iters = 1000000
+num_iters = 2000000
 for it in xrange(num_iters):
     if it % 100 == 0:
-        niche_size *= 0.996
-        niche_penalty = niche_penalty**0.9995
+        niche_size *= 0.995
+        niche_penalty = niche_penalty**0.999
     if it % 500 == 0:
         print fits.min(), fits.max()
         print niche_size, niche_penalty
