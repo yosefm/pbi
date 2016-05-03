@@ -54,6 +54,8 @@ class CameraPanel(QtGui.QGraphicsView):
         detection_method - either "default" to use OpenPTV detection, or 
             'large' to use a template-matching algorithm.
         """
+        self._zoom = 1
+        
         self._manual_detection_pts = []
         self._manual_detection_nums = manual_detection_numbers
         self._next_manual = 0
@@ -126,6 +128,20 @@ class CameraPanel(QtGui.QGraphicsView):
             self.add_manual_detection(self.mapToScene(event.pos()))
         else:
             self.rem_last_manual_detection()
+    
+    def wheelEvent(self, event):
+        """
+        Implements zooming/unzooming.
+        """
+        numDegrees = event.delta() / 8;
+        numSteps = numDegrees / 15;
+        print numSteps
+        
+        self.scale(1./self._zoom, 1./self._zoom)
+        self._zoom += (numSteps * 0.1)
+        self.scale(self._zoom, self._zoom)
+        
+        event.accept()
     
     def add_manual_detection(self, pos):
         """
