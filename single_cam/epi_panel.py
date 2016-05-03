@@ -43,7 +43,6 @@ class CamPanelEpi(CameraPanel):
             cpar = ControlParams(4)
             cpar.read_control_par(cpar_file)
         else: # assume dict
-            print cpar_file
             cpar = ControlParams(**cpar_file)
             
         CameraPanel.reset(self, cpar, cam_num, cal=cal, 

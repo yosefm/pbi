@@ -130,7 +130,6 @@ class CameraPanel(QtGui.QGraphicsView):
         elif event.button() == QtCore.Qt.RightButton:
             self.rem_last_manual_detection()
         else: # middle button used for dragging
-            print "mid"
             self._dragging = True
             self._last_pos = event.pos()
     
@@ -156,7 +155,6 @@ class CameraPanel(QtGui.QGraphicsView):
         """
         numDegrees = event.delta() / 8;
         numSteps = numDegrees / 15;
-        print numSteps
         
         self.scale(1./self._zoom, 1./self._zoom)
         self._zoom += (numSteps * 0.1)
