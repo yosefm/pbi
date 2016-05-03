@@ -64,7 +64,7 @@ cdef extern from "optv/epi.h":
 
 cdef extern from "typedefs.h":
     ctypedef struct n_tupel:
-        pass
+        int p[4]
 
 cdef extern from "correspondences.h":
     enum:
@@ -456,24 +456,28 @@ def point_positions(np.ndarray[ndim=3, dtype=pos_t] targets,
 ctypedef target pix_buf[][nmax]
 ctypedef coord_2d geo_buf[][nmax]
 
-def count_correspondences(list img_pts, list cals, VolumeParams vparam,
+def correspondences(list img_pts, list cals, VolumeParams vparam,
     ControlParams cparam):
     """
-    Get the number of correspondences for each clique size. Don't care about 
+    Get the correspondences for each clique size. Don't care about 
     their actual value for now.
     
     Arguments:
     cals - a list of Calibration objects, each for the camera taking one image.
-    img_pts - a list of len(cals), containing TargetArray objects, each with 
-        the target coordinates of n detections in the respective image.
+    img_pts - a list of c := len(cals), containing TargetArray objects, each 
+        with the target coordinates of n detections in the respective image.
     VolumeParams vparam - an object holding observed volume size parameters.
     ControlParams cparam - an object holding general control parameters.
     
     Returns:
-    a tuple with the number of quadruplets, triplets, pairs found and 
-    total number of targets (must be greater than the sum of previous 3).
+    sorted_pos - a tuple of (c,?,2) arrays, each with the positions in each of 
+        c image planes of points belonging to quadruplets, triplets, pairs 
+        found.
+    num_targs - total number of targets (must be greater than the sum of 
+        previous 3).
     """
     cdef:
+        int num_cams = len(cals)
         double x, y
         int match
         int *num = <int *> malloc(len(cals) * sizeof(int))
@@ -482,20 +486,20 @@ def count_correspondences(list img_pts, list cals, VolumeParams vparam,
             len(cals) * sizeof(calibration))
         TargetArray targ
         
-        target *pix = <target *> malloc(len(cals)*nmax * sizeof(target))
+        target *pix = <target *> malloc(num_cams*nmax * sizeof(target))
         target *curr_pix
         
-        coord_2d *geo = <coord_2d *> malloc(len(cals)*nmax * sizeof(coord_2d))
+        coord_2d *geo = <coord_2d *> malloc(num_cams*nmax * sizeof(coord_2d))
         coord_2d *curr_geo
         
         # Return buffers:
-        int *match_counts = <int *> malloc(len(cals) * sizeof(int))
+        int *match_counts = <int *> malloc(num_cams * sizeof(int))
         n_tupel *corresp_buf = <n_tupel *> malloc(nmax * sizeof(n_tupel))
     
     # Move targets to a C array and create the flat-camera version expected
     # by correspondences_4.
-    for cam in range(len(cals)):
-        calib[cam] =  (<Calibration>cals[cam])._calibration[0]
+    for cam in range(num_cams):
+        calib[cam] = (<Calibration>cals[cam])._calibration[0]
         targ = img_pts[cam]
         curr_pix = &(pix[cam*nmax])
         curr_geo = &(geo[cam*nmax])
@@ -523,8 +527,28 @@ def count_correspondences(list img_pts, list cals, VolumeParams vparam,
     match = correspondences_4 (<pix_buf>pix, <geo_buf>geo, num,
         vparam._volume_par, cparam._control_par, calib, 
         corresp_buf, match_counts)
-    ret = tuple(match_counts[c] for c in xrange(len(cals)))
     
+    # Distribute data to return structures:
+    sorted_pos = [None]*(num_cams - 1)
+    last_count = 0
+    for clique_type in xrange(num_cams - 1):
+        num_points = match_counts[clique_type]
+        clique_targs = np.full((num_cams, num_points, 2), -999, 
+            dtype=np.float64)
+            
+        for cam in range(num_cams):            
+            for pt in range(num_points):
+                if corresp_buf[pt + last_count].p[cam] < 0:
+                    continue
+
+                p1 = geo[cam*nmax + corresp_buf[pt + last_count].p[cam]].pnr
+                if p1 > -1:
+                    clique_targs[cam, pt, 0] = pix[cam*nmax + p1].x
+                    clique_targs[cam, pt, 1] = pix[cam*nmax + p1].y
+        
+        last_count += num_points
+        sorted_pos[clique_type] = clique_targs
+        
     # Clean up.
     free(calib)
     free(pix)
@@ -532,4 +556,4 @@ def count_correspondences(list img_pts, list cals, VolumeParams vparam,
     free(match_counts)
     free(corresp_buf) # Note this for future returning of correspondences.
     
-    return ret
+    return sorted_pos, match_counts[-1]

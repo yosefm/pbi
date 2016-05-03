@@ -109,7 +109,7 @@ if __name__ == "__main__":
         large=args.large)
     
     if args.corresp:
-        from calib import count_correspondences
+        from calib import correspondences
         from mixintel.evolution import get_polar_rep
         
         cals = []
@@ -120,6 +120,6 @@ if __name__ == "__main__":
             print cals[-1].get_angles()
             print get_polar_rep(cals[-1].get_pos(), cals[-1].get_angles())
         
-        count_correspondences(targs, cals, cam._vpar, cam._cpar)
+        print correspondences(targs, cals, cam._vpar, cam._cpar)
     
     sys.exit(app.exec_())
