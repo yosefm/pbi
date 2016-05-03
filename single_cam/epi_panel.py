@@ -63,8 +63,8 @@ class CamPanelEpi(CameraPanel):
             
             self.point_marked.emit(closest_coord, self._cal, self._num)
             self.mark_point(closest_coord)
-        else:
-            pass
+        elif event.button() == QtCore.Qt.MiddleButton:
+            CameraPanel.mousePressEvent(self, event)
     
     def set_image(self, image_name):
         """

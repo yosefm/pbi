@@ -55,6 +55,7 @@ class CameraPanel(QtGui.QGraphicsView):
             'large' to use a template-matching algorithm.
         """
         self._zoom = 1
+        self._dragging = False
         
         self._manual_detection_pts = []
         self._manual_detection_nums = manual_detection_numbers
@@ -126,8 +127,28 @@ class CameraPanel(QtGui.QGraphicsView):
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             self.add_manual_detection(self.mapToScene(event.pos()))
-        else:
+        elif event.button() == QtCore.Qt.RightButton:
             self.rem_last_manual_detection()
+        else: # middle button used for dragging
+            print "mid"
+            self._dragging = True
+            self._last_pos = event.pos()
+    
+    def mouseReleaseEvent(self, event):
+        if event.button() == QtCore.Qt.MiddleButton:
+            self._dragging = False
+    
+    def mouseMoveEvent(self, event):
+        if self._dragging:
+            dx = event.pos().x() - self._last_pos.x()
+            hb = self.horizontalScrollBar()
+            hb.setValue(hb.value() - dx)
+            
+            dy = event.pos().y() - self._last_pos.y()
+            vb = self.verticalScrollBar()
+            vb.setValue(vb.value() - dy)
+
+            self._last_pos = event.pos()
     
     def wheelEvent(self, event):
         """
