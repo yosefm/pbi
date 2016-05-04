@@ -122,7 +122,29 @@ class CamPanelEpi(CameraPanel):
             self._scene.addLine(
                 pts[pt,0], pts[pt,1], pts[pt + 1,0], pts[pt + 1,1], pen)
         return pts
+            
+    def add_correspondence_set(self, points, name, color):
+        """
+        Show a set of points as crosses of a given color.
         
+        Arguments:
+        points - an (n,2) array of pixel coordinates.
+        name - an identifier for the set.
+        color - as understood by QPen constructors.
+        """
+        self.add_patchset(name)
+        
+        pen = QtGui.QPen(QtGui.QColor(color))
+        ln = 5
+        for pt in points:
+            if pt[0] == -999:
+                continue
+            h = self._scene.addLine(pt[0] - ln, pt[1], pt[0] + ln, pt[1],
+                pen=pen)
+            v = self._scene.addLine(pt[0], pt[1] - ln, pt[0], pt[1] + ln,
+                pen=pen)
+            self._patch_sets[name].push((h, v))
+
 if __name__ == "__main__":
     import sys
     

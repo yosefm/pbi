@@ -156,6 +156,7 @@ class CameraPanel(QtGui.QGraphicsView):
         self._targets = None
         self.add_patchset('detected')
         self.add_patchset('projected')
+        self.add_patchset('matching')
         self._residual_patches = []
     
     def set_image(self, image_name):
@@ -402,21 +403,21 @@ class CameraPanel(QtGui.QGraphicsView):
             self._targets, self._cpar)
         self.set_targets(sorted_targs)
         
+        self.clear_patchset('projected')
         rad = 5
         text_size = 20
         font = QtGui.QFont()
         font.setPointSize(text_size)
         pen = QtGui.QPen(QtGui.QColor("cyan"))
-        self._sortgrid_patches = []
         
         for t in self._targets:
-            if t.pnr() < len(cal_points):  # Number in sortgrid.c, TODO: need a constant.
+            if t.pnr() < len(cal_points):
                 text_size = 20
                 num = self._scene.addSimpleText(str(t.pnr() + 1), font=font)
                 x, y = t.pos()
                 num.setPos(x, y - (text_size + 5 + rad))
                 num.setPen(pen)
-                self._sortgrid_patches.append(num)
+                self._patch_sets['matching'].push(num)
     
     def tune_calibration(self, cal_points):
         """

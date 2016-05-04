@@ -120,6 +120,14 @@ if __name__ == "__main__":
             print cals[-1].get_angles()
             print get_polar_rep(cals[-1].get_pos(), cals[-1].get_angles())
         
-        print correspondences(targs, cals, cam._vpar, cam._cpar)
+        sets = correspondences(targs, cals, cam._vpar, cam._cpar)[0]
+        names = ['quads', 'triplets', 'pairs']
+        colors = ['red', 'green', 'orange']
+        for pset, clique_name, cross_color in zip(sets, names, colors):
+            if pset.shape[1] == 0:
+                continue
+            for cam in window.findChildren(CamPanelEpi):
+                cam.add_correspondence_set(
+                    pset[cam.cam_id()], clique_name, cross_color)
     
     sys.exit(app.exec_())

@@ -550,10 +550,11 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
         sorted_pos[clique_type] = clique_targs
         
     # Clean up.
+    num_targs = match_counts[num_cams - 1]
     free(calib)
     free(pix)
     free(geo)
     free(match_counts)
     free(corresp_buf) # Note this for future returning of correspondences.
     
-    return sorted_pos, match_counts[-1]
+    return sorted_pos, num_targs
