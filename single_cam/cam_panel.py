@@ -23,8 +23,12 @@ def gray2qimage(gray):
     h, w = gray.shape
     result = QtGui.QImage(gray.data, w, h, QtGui.QImage.Format_Indexed8)
     
-    for i in range(256):
-        result.setColor(i, QtGui.QColor(i, i, i).rgb())
+    # Stretch the histogram over all the range.
+    crange = gray.min() - gray.max()
+    colors = np.linspace(0, 255, crange)
+    for i in range(int(crange)):
+        c = int(colors[i])
+        result.setColor(i, QtGui.QColor(c, c, c).rgb())
     return result
 
 class PatchSet(object):
