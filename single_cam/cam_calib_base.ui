@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>767</width>
+    <width>768</width>
     <height>788</height>
    </rect>
   </property>
@@ -29,6 +29,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>500</width>
+         <height>16777215</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -65,10 +71,24 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLineEdit" name="txt_addpar"/>
+         <widget class="QLineEdit" name="txt_addpar">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QLineEdit" name="txt_ori"/>
+         <widget class="QLineEdit" name="txt_ori">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_2">
@@ -94,10 +114,24 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLineEdit" name="txt_detected"/>
+         <widget class="QLineEdit" name="txt_detected">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLineEdit" name="txt_matched"/>
+         <widget class="QLineEdit" name="txt_matched">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item row="2" column="0">
          <widget class="QLabel" name="label_4">

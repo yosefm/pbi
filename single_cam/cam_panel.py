@@ -6,7 +6,6 @@ Created on Sun Jul 19 14:07:11 2015
 """
 
 from PyQt4 import QtCore, QtGui
-from itertools import izip
 import numpy as np, matplotlib.pyplot as pl
 
 from calib import simple_highpass, detect_ref_points, \
@@ -27,12 +26,94 @@ def gray2qimage(gray):
     for i in range(256):
         result.setColor(i, QtGui.QColor(i, i, i).rgb())
     return result
- 
+
+class PatchSet(object):
+    """
+    Manage a set of graphic items on the camera panel, with possible added 
+    info.
+    """
+    def __init__(self, props):
+        """
+        Arguments:
+        props - a list of names of properties attached to each point in the 
+            set. A list is created for them.
+        """
+        self._patches = []
+        self._props = {}
+        
+        for prop in props:
+            self._props[prop] = []
+    
+    def push(self, patch, **props):
+        """
+        Registers a patch with its required properties as defined in PatchSet
+        construction. Any missing or extraneous properties will cause a 
+        ValueError.
+        
+        Arguments:
+        patch - a QGraphicsItem or a sequence thereof (e.g. in case of a 
+            numbered point).
+        """
+        self._patches.append(patch)
+        
+        for prop in self._props.keys():
+            if prop not in props:
+                raise ValueError(
+                    "Required property %s not given for patch." % prop)
+        
+        for prop, val in props.iteritems():
+            if prop not in self._props:
+                raise ValueError("Unrecognized property %s for patch." % prop)
+            self._props[prop].append(val)
+    
+    def pop(self):
+        """
+        Remove the last inserted patch from the registry and return it so that
+        the scene could remove it.
+        """
+        ret = self._patches.pop()
+        for prop in self._props.itervalues():
+            prop.pop()
+        return ret
+    
+    def get_prop(self, name):
+        return self._props[name]
+    
+    def __len__(self):
+        return len(self._patches)
+    
+    def set_visibility(self, vis):
+        """
+        Sets a consistent visibility on all patches and subpatches.
+        """
+        for patch in self._patches:
+            if isinstance(patch, QtGui.QGraphicsItem):
+                patch.setVisible(vis)
+            else: # assume sequence
+                for subpatch in patch:
+                    subpatch.setVisible(vis)
+    
 class CameraPanel(QtGui.QGraphicsView):
     cal_changed = QtCore.pyqtSignal(Calibration, name="calibrationChanged")
     
     def __init__(self, parent=None):
         QtGui.QGraphicsView.__init__(self, parent)
+    
+    def add_patchset(self, name, props=[]):
+        self._patch_sets[name] = PatchSet(props)
+    
+    def clear_patchset(self, name):
+        pset = self._patch_sets[name]
+        for pnum in xrange(len(pset)):
+            patch = pset.pop()
+            if isinstance(patch, QtGui.QGraphicsView):
+                patch = [patch]
+            for subpatch in patch:
+                self._scene.removeItem(subpatch)
+    
+    def clear_patches(self):
+        for pset in self._patch_sets.iterkeys():
+            self.clear_patchset(pset)
     
     def reset(self, control, cam_num, manual_detection_numbers=None, cal=None,
               detection_file=None, detection_method="default"):
@@ -56,11 +137,11 @@ class CameraPanel(QtGui.QGraphicsView):
         """
         self._zoom = 1
         self._dragging = False
+        self._patch_sets = {}
         
-        self._manual_detection_pts = []
+        self.add_patchset('manual', ['pos'])
         self._manual_detection_nums = manual_detection_numbers
         self._next_manual = 0
-        self._manual_patches = []
         
         self._cpar = control
         self._num = cam_num
@@ -73,16 +154,9 @@ class CameraPanel(QtGui.QGraphicsView):
         self._detect_method = detection_method
         self._detect_path = detection_file
         self._targets = None
-        self._detected_patches = []
-        self._projected_patches = []
+        self.add_patchset('detected')
+        self.add_patchset('projected')
         self._residual_patches = []
-    
-    def clear(self):
-        self._manual_detection_pts = []
-        while len(self._manual_patches):
-             patch, num = self._manual_patches.pop()
-             self._scene.removeItem(patch)
-             self._scene.removeItem(num)
     
     def set_image(self, image_name):
         """
@@ -102,7 +176,7 @@ class CameraPanel(QtGui.QGraphicsView):
         
         self.setScene(self._scene)
         self.scale(0.99*self.width()/w, 0.99*self.height()/h)
-        self.clear()
+        self.clear_patches()
         
         # High-pass image:
         self._hp_img = simple_highpass(self._orig_img, self._cpar)
@@ -175,8 +249,6 @@ class CameraPanel(QtGui.QGraphicsView):
                 return
             num = self._manual_detection_nums[self._next_manual]
             self._next_manual += 1
-            
-        self._manual_detection_pts.append((pos.x(), pos.y()))
         
         rad = 5
         red_pen = QtGui.QPen(QtGui.QColor("red"))
@@ -190,14 +262,15 @@ class CameraPanel(QtGui.QGraphicsView):
         num.setPos(pos.x(), pos.y() - (text_size + 5 + rad))
         num.setPen(red_pen)
         
-        self._manual_patches.append((patch, num))
+        self._patch_sets['manual'].push((patch, num), pos=(pos.x(), pos.y()))
+        
     
     def get_manual_detection_points(self):
         """
         Returns an (n,2) array for n 2D scene-coordinates points, the current
         set of manually-detected points.
         """
-        return np.array(self._manual_detection_pts)
+        return np.array(self._patch_sets['manual'].get_prop('pos'))
     
     def set_manual_detection_points(self, points):
         """
@@ -206,7 +279,7 @@ class CameraPanel(QtGui.QGraphicsView):
         Arguments:
         points - an (n,2) array for n 2D scene-coordinates points.
         """
-        self.clear()
+        self.clear_patchset('manual')
         for point in points:
             self.add_manual_detection(QtCore.QPointF(*point))
         
@@ -214,11 +287,10 @@ class CameraPanel(QtGui.QGraphicsView):
         """
         Removes last manually-detected point from the scene.
         """
-        if len(self._manual_detection_pts) == 0:
+        if len(self._patch_sets['manual']) == 0:
             return
         
-        self._manual_detection_pts.pop()
-        patch, num = self._manual_patches.pop()
+        patch, num = self._patch_sets['manual'].pop()
         self._scene.removeItem(patch)
         self._scene.removeItem(num)
         
@@ -233,11 +305,7 @@ class CameraPanel(QtGui.QGraphicsView):
         targs - a TargetArray holding the new set.
         """
         self._targets = targs
-        
-        # Clear previous detections:
-        while len(self._detected_patches):
-            patch = self._detected_patches.pop()
-            self._scene.removeItem(patch)
+        self.clear_patchset('detected')
         
         # Now draw new set:
         blue = QtGui.QPen(QtGui.QColor("blue"))
@@ -245,7 +313,7 @@ class CameraPanel(QtGui.QGraphicsView):
         for targ in self._targets:
             x, y = targ.pos()
             p = self._scene.addEllipse(x - rad, y - rad, 2*rad, 2*rad, pen=blue)
-            self._detected_patches.append(p)
+            self._patch_sets['detected'].push(p)
         
     def detect_targets(self):
         # New detection from C:
@@ -275,8 +343,7 @@ class CameraPanel(QtGui.QGraphicsView):
         """
         Change visibility of detected targets.
         """
-        for patch in self._detected_patches:
-            patch.setVisible(vis)
+        self._patch_sets['detected'].set_visibility(vis)
         
     def project_cal_points(self, cal_points):
         """
@@ -286,10 +353,7 @@ class CameraPanel(QtGui.QGraphicsView):
         Arguments:
         cal_points - (n,3) array, the 3D points to project
         """
-        # Clear previous projections:
-        while len(self._projected_patches):
-            patch = self._projected_patches.pop()
-            self._scene.removeItem(patch)
+        self.clear_patchset('projected')
         
         img_plane_pos = pixel_2D_coords(self._cal, cal_points, self._cpar)
         
@@ -298,14 +362,13 @@ class CameraPanel(QtGui.QGraphicsView):
         rad = 5
         for x, y in img_plane_pos:
             p = self._scene.addEllipse(x - rad, y - rad, 2*rad, 2*rad, pen=pen)
-            self._projected_patches.append(p)
+            self._patch_sets['projected'].push(p)
     
     def set_projection_visibility(self, vis):
         """
         Change visibility of detected targets.
         """
-        for patch in self._projected_patches:
-            patch.setVisible(vis)
+        self._patch_sets['projected'].set_visibility(vis)
     
     def tune_external_calibration(self, cal_points, manual_matching):
         """
