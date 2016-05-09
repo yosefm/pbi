@@ -433,25 +433,30 @@ def point_positions(np.ndarray[ndim=3, dtype=pos_t] targets,
     
     Returns:
     res - (n,3) array for n points represented by their targets.
+    rcm - n-length array, the Ray Convergence Measure for eachpoint.
     """
     cdef:
-        np.ndarray[ndim=1, dtype=pos_t] res
+        np.ndarray[ndim=2, dtype=pos_t] res
+        np.ndarray[ndim=1, dtype=pos_t] rcm
         np.ndarray[ndim=2, dtype=pos_t] targ
-        vec2d **ctargets
         calibration **calib = cal_list2arr(cals)
         int cam, num_cams
     
+    # So we can address targets.data directly instead of get_ptr stuff:
+    targets = np.ascontiguousarray(targets) 
+    
     num_cams = targets.shape[1]
     num_pts = targets.shape[0]
-    ctargets = <vec2d **>calloc(num_pts, sizeof(vec2d*))
     res = np.empty((num_pts,3))
+    rcm = np.empty(num_pts)
     
     for pt in range(num_pts):
         targ = targets[pt]
-        point_position(<vec2d *>(targ.data), num_cams, cparam._control_par.mm,
-            calib, <vec3d>np.PyArray_GETPTR2(res, pt, 0))
+        rcm[pt] = point_position(<vec2d *>(targ.data), num_cams, 
+            cparam._control_par.mm, calib, 
+            <vec3d>np.PyArray_GETPTR2(res, pt, 0))
     
-    return res
+    return res, rcm
 
 ctypedef target pix_buf[][nmax]
 ctypedef coord_2d geo_buf[][nmax]

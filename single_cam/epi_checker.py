@@ -109,16 +109,17 @@ if __name__ == "__main__":
         large=args.large)
     
     if args.corresp:
-        from calib import correspondences
-        from mixintel.evolution import get_polar_rep
+        from calib import correspondences, point_positions
+        from optv.transforms import convert_arr_pixel_to_metric, correct_arr_brown_affine
+        #from mixintel.evolution import get_polar_rep
         
         cals = []
         targs = []
         for cam in window.findChildren(CamPanelEpi):
             cals.append(cam.calibration())
             targs.append(cam._targets)
-            print cals[-1].get_angles()
-            print get_polar_rep(cals[-1].get_pos(), cals[-1].get_angles())
+            #print cals[-1].get_angles()
+            #print get_polar_rep(cals[-1].get_pos(), cals[-1].get_angles())
         
         sets = correspondences(targs, cals, cam._vpar, cam._cpar)[0]
         names = ['quads', 'triplets', 'pairs']
@@ -126,8 +127,21 @@ if __name__ == "__main__":
         for pset, clique_name, cross_color in zip(sets, names, colors):
             if pset.shape[1] == 0:
                 continue
+            
+            flat = []
             for cam in window.findChildren(CamPanelEpi):
+                cam_cent = cam.calibration().get_primary_point()[:2]
+                
+                unused = pset[cam.cam_id()] == -999
+                metric = convert_arr_pixel_to_metric(pset[cam.cam_id()], 
+                    cam._cpar) - cam_cent
+                flat.append(correct_arr_brown_affine(metric, cam.calibration()))
+                flat[-1][unused] = -999
+                
                 cam.add_correspondence_set(
                     pset[cam.cam_id()], clique_name, cross_color)
-    
+            
+            flat = np.array(flat)
+            print point_positions(flat.transpose(1,0,2), cam._cpar, cals)[0]
+                
     sys.exit(app.exec_())
