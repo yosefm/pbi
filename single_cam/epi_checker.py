@@ -143,5 +143,5 @@ if __name__ == "__main__":
             
             flat = np.array(flat)
             print point_positions(flat.transpose(1,0,2), cam._cpar, cals)[0]
-                
+            
     sys.exit(app.exec_())

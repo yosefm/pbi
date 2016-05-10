@@ -110,7 +110,7 @@ class CameraPanel(QtGui.QGraphicsView):
         pset = self._patch_sets[name]
         for pnum in xrange(len(pset)):
             patch = pset.pop()
-            if isinstance(patch, QtGui.QGraphicsView):
+            if isinstance(patch, QtGui.QGraphicsItem):
                 patch = [patch]
             for subpatch in patch:
                 self._scene.removeItem(subpatch)
