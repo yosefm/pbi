@@ -116,3 +116,14 @@ def recombination(sol1, sol2):
     ret = sol1.copy()
     ret[genes == 1] = sol2[genes == 1]
     return ret
+
+def near_genes_recombination(sol1, sol2):
+    """
+    This is more similar to biological recombination, and preserves genes that
+    are lumped together mostly, thus protecting traits that require a 
+    combination of genes.
+    """
+    cut = rnd.random_integers(0, len(sol1) - 1, 1)[0]
+    ret = sol1.copy()
+    ret[cut:] = sol2[cut:]
+    return ret
