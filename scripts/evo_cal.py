@@ -144,8 +144,8 @@ elif cam == 2:
               (210.,300.), # R
               (-0.6, 0.), (-0.6, 0.), (-0.5, 0.5), # angles
               (-2., 2.), (-2., 2.), (60, 100), # primary point
-              (-4e-4, 4e-4), (-2e-5, 2e-5), (-1e-5, 1e-5), # radial distortion
-              (-1e-3, 1e-3), (-2e-4, 2e-4) # decentering
+              (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
+              (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
     ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 3:
