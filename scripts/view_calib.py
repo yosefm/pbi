@@ -123,39 +123,7 @@ class PTVScene(TracerScene):
         known_points = intersect_known_points([cam['known'] for cam in cam_args])
         self._scene.mlab.points3d(known_points[:,0], known_points[:,1], 
             known_points[:,2], color=(1., 0., 0.), scale_factor=0.5)
-            
-def show_rays(axes, tree, escaping_len):
-    """
-    Given the tree data structure from the ray tracing engine, 
-    3D-plot the rays.
-    
-    Arguments:
-    axes - a matplotlib Axes3D object on which to draw the lines.
-    tree - a tree of rays, as constructed by the tracer engine
-    escaping_len - the length of the arrow indicating the direction of rays
-        that don't intersect any surface (leaf rays).
-    """
-    for level in xrange(tree.num_bunds()):
-        start_rays = tree[level]
-        se = start_rays.get_energy()
-        non_degenerate = (se != 0) & (start_rays.get_directions()[2,:] < 0)
-        sv = start_rays.get_vertices()[:,non_degenerate]
-        sd = start_rays.get_directions()[:,non_degenerate]
-        
-        if level == tree.num_bunds() - 1:
-            # Make endpoints for escaping rays
-            ev = sv + sd*escaping_len
-        else:
-            end_rays = tree[level + 1]
-            escaping = ~np.any(
-                np.arange(sv.shape[1]) == end_rays.get_parents()[:,None], 0)
-            escaping_endpoints = sv[:,escaping] + sd[:,escaping]*escaping_len
-            
-            ev = np.hstack((end_rays.get_vertices(), escaping_endpoints))
-        
-        for seg in zip(sv.T, ev.T):
-            axes.plot([seg[0][0], seg[1][0]], [seg[0][1], seg[1][1]],
-                      [seg[0][2], seg[1][2]], c='y')
+
         
 if __name__ == "__main__":
     from mixintel.openptv import read_scene_config, intersect_known_points
