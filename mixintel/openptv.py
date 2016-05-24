@@ -9,7 +9,9 @@ Created on Sun Jan 31 14:06:13 2016
 @author: yosef
 """
 import yaml
-import numpy as np, matplotlib.pyplot as pl
+import numpy as np
+from scipy.misc import imread
+
 from optv.parameters import ControlParams
 from optv.calibration import Calibration
 from calib import simple_highpass, detect_ref_points
@@ -81,7 +83,7 @@ def read_scene_config(fname):
     # Load them from spec and results of curve generator.
     for cix, cam_spec in enumerate(cam_args):
         # Detection and known points.
-        cam_spec['image'] = pl.imread(cam_spec['image'])
+        cam_spec['image'] = imread(cam_spec['image'])
         cam_spec['hp'] = simple_highpass(cam_spec['image'], cpar)
         cam_spec['targs'] = detect_ref_points(cam_spec['hp'], cix, cpar, 
             detection_pars=yaml_args['detection_params'])
