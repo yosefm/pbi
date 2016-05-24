@@ -141,7 +141,7 @@ elif cam == 1:
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 2:
     bounds = [(-20.,20.), (-20.,20.), # offset
-              (210.,300.), # R
+              (210.,320.), # R
               (-0.6, 0.), (-0.6, 0.), (-0.5, 0.5), # angles
               (-2., 2.), (-2., 2.), (60, 100), # primary point
               (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
@@ -150,11 +150,11 @@ elif cam == 2:
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 3:
     bounds = [(-20.,20.), (-20.,20.), # offset
-              (210.,300.), # R
+              (200.,320.), # R
               (-0.6, 0.), (-0., 0.6), (-0.5, 0.5), # angles
-              (-5., 5.), (-5., 5.), (60, 100), # primary point
-              (-2e-5, 2e-5), (-2e-5, 2e-5), (-1e-5, 1e-5), # radial distortion
-              (-1e-3, 1e-3), (-2e-4, 2e-4) # decentering
+              (-2., 2.), (-2., 2.), (60, 100), # primary point
+              (-1e-5, 1e-5), (-1e-1, 1e-5), (-1e-5, 1e-5), # radial distortion
+              (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
     ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 
