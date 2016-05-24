@@ -58,9 +58,10 @@ class PTVScene(TracerScene):
         # Auxiliary surfaces and ray sources:
         pos = []
         ray_sources = RayBundle.empty_bund()
+        colors = [(1., 0., 0.), (0., 1., 0.), (0., 0., 1.), (0.5, 0., 0.5)]
         mm = cpar.get_multimedia_params()
         
-        for cam_spec in cam_args:
+        for cam_spec, color in zip(cam_args, colors):
             pos.append(cam_spec['calib'].get_pos())
             prim = cam_spec['calib'].get_primary_point()
             angs = cam_spec['calib'].get_angles()
@@ -85,7 +86,7 @@ class PTVScene(TracerScene):
             pos_3d = np.dot(trans, img_3d[...,None])
             pos_3d = pos_3d[:3,:,-1].reshape(3, len(ys), len(xs))
             
-            self._scene.mlab.mesh(*pos_3d, color=(0., 1., 0.))
+            self._scene.mlab.mesh(*pos_3d, color=color)
                     
             # Generate ray bundle:
             targs = np.array([t.pos() for t in cam_spec['targs']])
