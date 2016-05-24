@@ -134,7 +134,7 @@ if __name__ == "__main__":
                 
                 unused = pset[cam.cam_id()] == -999
                 metric = convert_arr_pixel_to_metric(pset[cam.cam_id()], 
-                    cam._cpar) - cam_cent
+                    cam._cpar)
                 flat.append(correct_arr_brown_affine(metric, cam.calibration()))
                 flat[-1][unused] = -999
                 
