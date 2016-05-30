@@ -12,7 +12,9 @@ import numpy as np, matplotlib.pyplot as pl
 import numpy.random as rnd
 from matplotlib import cm
 
-from calib import pixel_2D_coords, simple_highpass, detect_ref_points
+from optv.imgcoord import image_coordinates
+from optv.transforms import convert_arr_metric_to_pixel
+from calib import simple_highpass, detect_ref_points
 from mixintel.evolution import gen_calib, get_pos, mutation, recombination, choose_breeders
 
 wrap_it_up = False
@@ -48,7 +50,9 @@ def fitness(solution, calib_targs, calib_detect, glass_vec, cpar):
         
     # Compare known points' projections to detections:
     cal = gen_calib(inters, R, angs, glass_vec, prim_point, rad_dist, decent)
-    known_2d = pixel_2D_coords(cal, calib_targs, cpar)
+    known_proj = image_coordinates(calib_targs, cal, 
+        cpar.get_multimedia_params())
+    known_2d = convert_arr_metric_to_pixel(known_proj, cpar)
     dists = np.linalg.norm(
         known_2d[None,:,:] - calib_detect[:,None,:], axis=2).min(axis=0)
     
@@ -88,7 +92,9 @@ def show_current(signum, frame):
     print "decentering: %.8f %.8f" % tuple(decent)
     
     cal = gen_calib(inters, R, angs, glass_vec, prim, rad, decent)
-    init_xs, init_ys = pixel_2D_coords(cal, cal_points, cpar).T
+    known_proj = image_coordinates(cal_points, cal, 
+        cpar.get_multimedia_params())
+    init_xs, init_ys = convert_arr_metric_to_pixel(known_proj, cpar).T
     
     pl.imshow(hp, cmap=cm.gray)
     pl.scatter(targs[:,0], targs[:,1])
@@ -140,16 +146,16 @@ elif cam == 1:
     ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 2:
-    bounds = [(-20.,20.), (-20.,20.), # offset
-              (210.,320.), # R
+    bounds = [(-100.,100.), (-100.,100.), # offset
+              (210.,420.), # R
               (-0.6, 0.), (-0.6, 0.), (-0.5, 0.5), # angles
               (-2., 2.), (-2., 2.), (60, 100), # primary point
-              (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
-              (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
+              (-1e-3, 1e-3), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
+              (-1e-3, 1e-3), (-1e-3, 1e-3) # decentering
     ]
     cal_points = np.loadtxt(calblock_name)[:,1:]
 elif cam == 3:
-    bounds = [(-20.,20.), (-20.,20.), # offset
+    bounds = [(-50.,50.), (-50.,50.), # offset
               (200.,320.), # R
               (-0.6, 0.), (-0., 0.6), (-0.5, 0.5), # angles
               (-2., 2.), (-2., 2.), (60, 100), # primary point

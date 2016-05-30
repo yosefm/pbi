@@ -50,10 +50,6 @@ cdef extern from "image_processing.h":
         int xmin, int xmax, int ymin, int ymax, target *pix, int nr, int* num,
             control_par *cpar)
 
-cdef extern from "optv/imgcoord.h":
-    void img_coord (vec3d pos, calibration *cal, mm_np *mm,
-        double *x, double *y)
-
 cdef extern from "optv/multimed.h":
     void move_along_ray(double glob_Z, vec3d vertex, vec3d direct, vec3d out)
     
@@ -118,60 +114,6 @@ def detect_ref_points(np.ndarray img, int cam, ControlParams cparam,
     
     t.set(ret, num_targs, 1)
     return t
-
-def pixel_2D_coords(Calibration cal, np.ndarray[ndim=2, dtype=pos_t] pos3d,
-    ControlParams cparam):
-    """
-    Translate an array of 3D coordinates into an array of the corresponding 2D
-    coordinates in the image plane of the given camera.
-    
-    Arguments:
-    Calibration cal - position and other parameters of the camera.
-    np.ndarray pos3d - (n,3) array, the 3D points to project (metric, usually
-        mm but depends on parameters).
-    ControlParams cparam - an object holding general control parameters.
-    
-    Returns:
-    pos2d - (n,2) array, the corresponding pixel coordinates on the image 
-        plane.
-    """
-    cdef:
-        double *xp, *yp
-        np.ndarray[ndim=2, dtype=pos_t] pos2d = np.empty(
-            (pos3d.shape[0], 2))
-        np.ndarray[ndim=1, dtype=pos_t] point
-    
-    for pn, point in enumerate(pos3d):
-        xp = <double *>np.PyArray_GETPTR2(pos2d, pn, 0)
-        yp = <double *>np.PyArray_GETPTR2(pos2d, pn, 1)
-        
-        img_coord (<double *>point.data, cal._calibration, 
-            cparam._control_par.mm, xp, yp)
-        metric_to_pixel(xp, yp, xp[0], yp[0], cparam._control_par)
-
-    return pos2d
-
-def image_coords_metric(np.ndarray[ndim=2, dtype=pos_t] arr, 
-    ControlParams cparam):
-    """
-    Convert pixel coordinates to metric coordinates on the image plane of a 
-    camera. 
-    
-    Arguments:
-    np.ndarray arr - (n,2) array, the 2D points in pixel coordinates.
-    ControlParams cparam - an object holding general control parameters.
-    """
-    cdef:
-        np.ndarray[ndim=2, dtype=pos_t] metric = np.empty_like(arr)
-        double *xp, *yp
-    
-    for pn in range(arr.shape[0]):
-        xp = <double *>np.PyArray_GETPTR2(metric, pn, 0)
-        yp = <double *>np.PyArray_GETPTR2(metric, pn, 1)
-        
-        pixel_to_metric(xp, yp, arr[pn,0], arr[pn,1], cparam._control_par)
-    
-    return metric
 
 def external_calibration(Calibration cal, 
     np.ndarray[ndim=2, dtype=pos_t] ref_pts, 

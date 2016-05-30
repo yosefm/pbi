@@ -9,10 +9,11 @@ from PyQt4 import QtCore, QtGui
 import numpy as np, matplotlib.pyplot as pl
 
 from calib import simple_highpass, detect_ref_points, \
-    pixel_2D_coords, external_calibration, match_detection_to_ref, \
-    full_calibration
+    external_calibration, match_detection_to_ref, full_calibration
 
 from optv.calibration import Calibration
+from optv.imgcoord import image_coordinates
+from optv.transforms import convert_arr_metric_to_pixel
 from mixintel.detection import detect_large_particles
 
 def gray2qimage(gray):
@@ -360,7 +361,9 @@ class CameraPanel(QtGui.QGraphicsView):
         """
         self.clear_patchset('projected')
         
-        img_plane_pos = pixel_2D_coords(self._cal, cal_points, self._cpar)
+        img_coords = image_coordinates(cal_points, self._cal, 
+            self._cpar.get_multimedia_params())
+        img_plane_pos = convert_arr_metric_to_pixel(img_coords, self._cpar)
         
         # Now draw it:
         pen = QtGui.QPen(QtGui.QColor("yellow"))

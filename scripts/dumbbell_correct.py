@@ -57,7 +57,7 @@ def calib_convergence(calib_vec, targets, calibs, active_cams, cpar,
 if __name__ == "__main__":
     from optv.calibration import Calibration
     from optv.tracking_framebuf import read_targets
-    from calib import image_coords_metric
+    from optv.transforms import convert_arr_pixel_to_metric
     
     import yaml, numpy as np
     from scipy.optimize import minimize
@@ -105,7 +105,7 @@ if __name__ == "__main__":
             for tix, targ in enumerate(targs):
                 all_targs[frame*2 + tix].append(targ.pos())
     
-    all_targs = np.array([image_coords_metric(np.array(targs), cpar) \
+    all_targs = np.array([convert_arr_pixel_to_metric(np.array(targs), cpar) \
         for targs in all_targs])
     assert(all_targs.shape[1] == 4 and all_targs.shape[2] == 2)
     
