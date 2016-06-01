@@ -52,7 +52,11 @@ cdef extern from "image_processing.h":
 
 cdef extern from "optv/multimed.h":
     void move_along_ray(double glob_Z, vec3d vertex, vec3d direct, vec3d out)
-    
+
+cdef extern from "optv/imgcoord.h":
+    void img_coord (vec3d pos, calibration *cal, mm_np *mm,
+        double *x, double *y)
+
 cdef extern from "optv/epi.h":
     ctypedef struct coord_2d:
         int pnr
@@ -420,6 +424,8 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
     sorted_pos - a tuple of (c,?,2) arrays, each with the positions in each of 
         c image planes of points belonging to quadruplets, triplets, pairs 
         found.
+    sorted_corresp - a tuple of (c,?) arrays, each with the point identifiers
+        of targets belobging to a quad/trip/etc per camera.
     num_targs - total number of targets (must be greater than the sum of 
         previous 3).
     """
@@ -477,14 +483,18 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
     
     # Distribute data to return structures:
     sorted_pos = [None]*(num_cams - 1)
+    sorted_corresp = [None]*(num_cams - 1)
     last_count = 0
+    
     for clique_type in xrange(num_cams - 1):
         num_points = match_counts[clique_type]
         clique_targs = np.full((num_cams, num_points, 2), -999, 
             dtype=np.float64)
+        clique_ids = np.full((num_cams, num_points), -1, dtype=np.int_)
             
         for cam in range(num_cams):            
             for pt in range(num_points):
+                clique_ids[cam, pt] = corresp_buf[pt + last_count].p[cam]
                 if corresp_buf[pt + last_count].p[cam] < 0:
                     continue
 
@@ -495,13 +505,14 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
         
         last_count += num_points
         sorted_pos[clique_type] = clique_targs
+        sorted_corresp[clique_type] = clique_ids
         
     # Clean up.
     num_targs = match_counts[num_cams - 1]
     free(calib)
-    free(pix)
+    free(pix) # But need to copy back the tnr!!
     free(geo)
     free(match_counts)
     free(corresp_buf) # Note this for future returning of correspondences.
     
-    return sorted_pos, num_targs
+    return sorted_pos, sorted_corresp, num_targs
