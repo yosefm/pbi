@@ -430,6 +430,7 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
         previous 3).
     """
     cdef:
+        int pt, cam
         int num_cams = len(cals)
         double x, y
         int match
@@ -491,14 +492,18 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
         clique_targs = np.full((num_cams, num_points, 2), -999, 
             dtype=np.float64)
         clique_ids = np.full((num_cams, num_points), -1, dtype=np.int_)
-            
+        
+        # Trace back the pixel target properties through the flat metric
+        # intermediary that's x-sorted.
         for cam in range(num_cams):            
             for pt in range(num_points):
-                clique_ids[cam, pt] = corresp_buf[pt + last_count].p[cam]
-                if corresp_buf[pt + last_count].p[cam] < 0:
+                geo_id = corresp_buf[pt + last_count].p[cam]
+                if geo_id < 0:
                     continue
+                
+                p1 = geo[cam*nmax + geo_id].pnr
+                clique_ids[cam, pt] = p1
 
-                p1 = geo[cam*nmax + corresp_buf[pt + last_count].p[cam]].pnr
                 if p1 > -1:
                     clique_targs[cam, pt, 0] = pix[cam*nmax + p1].x
                     clique_targs[cam, pt, 1] = pix[cam*nmax + p1].y
@@ -506,11 +511,17 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
         last_count += num_points
         sorted_pos[clique_type] = clique_targs
         sorted_corresp[clique_type] = clique_ids
-        
-    # Clean up.
+    
+    # Clean up: copy back modified tergets, and free memory.
+    for cam in range(num_cams):
+        targ = img_pts[cam]
+        curr_pix = &(pix[cam*nmax])
+        for pt in range(len(targ)):
+            targ._tarr[pt] = curr_pix[pt]
+    
     num_targs = match_counts[num_cams - 1]
     free(calib)
-    free(pix) # But need to copy back the tnr!!
+    free(pix)
     free(geo)
     free(match_counts)
     free(corresp_buf) # Note this for future returning of correspondences.
