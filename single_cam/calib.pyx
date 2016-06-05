@@ -69,7 +69,8 @@ cdef extern from "typedefs.h":
 cdef extern from "correspondences.h":
     enum:
         nmax
-    void quicksort_coord2d_x (coord_2d *crd, int num)
+    void quicksort_target_y(target *pix, int num)
+    void quicksort_coord2d_x(coord_2d *crd, int num)
     int correspondences_4 (target pix[][nmax], coord_2d geo[][nmax], int num[],
         volume_par *vpar, control_par *cpar, calibration cals[], n_tupel *con,
         int match_counts[])
@@ -417,6 +418,8 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
     cals - a list of Calibration objects, each for the camera taking one image.
     img_pts - a list of c := len(cals), containing TargetArray objects, each 
         with the target coordinates of n detections in the respective image.
+        The target arrays are clobbered: returned arrays are in y order and
+        with the tnr property set.
     VolumeParams vparam - an object holding observed volume size parameters.
     ControlParams cparam - an object holding general control parameters.
     
@@ -455,10 +458,13 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
     for cam in range(num_cams):
         calib[cam] = (<Calibration>cals[cam])._calibration[0]
         targ = img_pts[cam]
+        num[cam] = len(targ)
+        
+        quicksort_target_y(targ._tarr, num[cam])
+        
         curr_pix = &(pix[cam*nmax])
         curr_geo = &(geo[cam*nmax])
         
-        num[cam] = len(targ)
         for pt in range(len(targ)):
             curr_pix[0] = targ._tarr[pt]
             curr_pix[0].pnr = pt
@@ -467,10 +473,10 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
             # Flat image coordinates:
             pixel_to_metric(&x, &y, curr_pix.x, curr_pix.y, 
                 cparam._control_par);
-            x -= calib[cam].int_par.xh
-            y -= calib[cam].int_par.yh
             correct_brown_affin (x, y, calib[cam].added_par,
                 &(curr_geo[0].x), &(curr_geo[0].y));
+            curr_geo[0].x -= calib[cam].int_par.xh
+            curr_geo[0].y -= calib[cam].int_par.yh
             
             curr_pix = &(curr_pix[1])
             curr_geo = &(curr_geo[1])
