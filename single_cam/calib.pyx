@@ -473,10 +473,10 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
             # Flat image coordinates:
             pixel_to_metric(&x, &y, curr_pix.x, curr_pix.y, 
                 cparam._control_par);
+            x -= calib[cam].int_par.xh
+            y -= calib[cam].int_par.yh
             correct_brown_affin (x, y, calib[cam].added_par,
                 &(curr_geo[0].x), &(curr_geo[0].y));
-            curr_geo[0].x -= calib[cam].int_par.xh
-            curr_geo[0].y -= calib[cam].int_par.yh
             
             curr_pix = &(curr_pix[1])
             curr_geo = &(curr_geo[1])
