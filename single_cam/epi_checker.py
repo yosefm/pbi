@@ -110,7 +110,8 @@ if __name__ == "__main__":
     
     if args.corresp:
         from calib import correspondences, point_positions
-        from optv.transforms import convert_arr_pixel_to_metric, correct_arr_brown_affine
+        from optv.transforms import convert_arr_pixel_to_metric, \
+            distorted_to_flat
         #from mixintel.evolution import get_polar_rep
         
         cals = []
@@ -134,9 +135,8 @@ if __name__ == "__main__":
                 
                 unused = pset[cam.cam_id()] == -999
                 metric = convert_arr_pixel_to_metric(pset[cam.cam_id()], 
-                    cam._cpar) - cam_cent
-                flat.append(correct_arr_brown_affine(metric, cam.calibration()))
-                flat[-1] += cam_cent
+                    cam._cpar)
+                flat.append(distorted_to_flat(metric, cam.calibration()))
                 flat[-1][unused] = -999
                 
                 cam.add_correspondence_set(

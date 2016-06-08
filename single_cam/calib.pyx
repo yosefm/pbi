@@ -16,7 +16,7 @@ from optv.calibration cimport Calibration, Exterior, Interior, Glass, ap_52, \
 from optv.parameters cimport ControlParams, VolumeParams, mm_np, control_par, \
     volume_par
 from optv.transforms cimport metric_to_pixel, pixel_to_metric, \
-    correct_brown_affin
+    correct_brown_affin, dist_to_flat
 from optv.vec_utils cimport vec3d
 
 cdef extern from "optv/ray_tracing.h":
@@ -296,10 +296,8 @@ def epipolar_curve(np.ndarray[ndim=1, dtype=pos_t] image_point,
     # Move from distorted pixel coordinates to straight metric coordinates.
     pixel_to_metric(img_pt, img_pt + 1, image_point[0], image_point[1], 
         cparam._control_par)
-    img_pt[0] -= origin_cam._calibration.int_par.xh
-    img_pt[1] -= origin_cam._calibration.int_par.yh
-    correct_brown_affin (img_pt[0], img_pt[1], 
-        origin_cam._calibration.added_par, img_pt, img_pt + 1)
+    dist_to_flat(img_pt[0], img_pt[1], 
+        origin_cam._calibration, img_pt, img_pt + 1, 0.00001)
     
     ray_tracing(img_pt[0], img_pt[1], origin_cam._calibration,
         cparam._control_par.mm[0], vertex, direct)
@@ -473,10 +471,8 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
             # Flat image coordinates:
             pixel_to_metric(&x, &y, curr_pix.x, curr_pix.y, 
                 cparam._control_par);
-            x -= calib[cam].int_par.xh
-            y -= calib[cam].int_par.yh
-            correct_brown_affin (x, y, calib[cam].added_par,
-                &(curr_geo[0].x), &(curr_geo[0].y));
+            dist_to_flat(x, y, &(calib[cam]), 
+                &(curr_geo[0].x), &(curr_geo[0].y), 0.0001);
             
             curr_pix = &(curr_pix[1])
             curr_geo = &(curr_geo[1])
