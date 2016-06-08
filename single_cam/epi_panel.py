@@ -33,7 +33,8 @@ class CamPanelEpi(CameraPanel):
         Arguments:
         cpar_file - path to control parameters file (e.g. ptv.par) or a dict
             as read from YAML configuration.
-        vpar_file - path to observed volume parameters (e.g. criteria.par)
+        vpar_file - path to observed volume parameters (e.g. criteria.par) or 
+            a dict as read from YAML configuration.
         cam_num - identifier for this camera.
         cal - a Calibration object with camera parameters. If None, one will be 
             created.
@@ -44,11 +45,15 @@ class CamPanelEpi(CameraPanel):
             cpar.read_control_par(cpar_file)
         else: # assume dict
             cpar = ControlParams(**cpar_file)
-            
+        
+        if type(vpar_file) is str:
+            self._vpar = VolumeParams()
+            self._vpar.read_volume_par(vpar_file)
+        else:
+            self._vpar = VolumeParams(**vpar_file)
+        
         CameraPanel.reset(self, cpar, cam_num, cal=cal, 
             detection_file=detection_file, detection_method=detection_method)
-        self._vpar = VolumeParams()
-        self._vpar.read_volume_par(vpar_file)
         
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:

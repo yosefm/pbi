@@ -83,8 +83,6 @@ if __name__ == "__main__":
     
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('ov_file', type=str,
-        help="Path to observed volume parameters")
     parser.add_argument('-d', '--detection-file', type=str, 
         default="parameters/targ_rec.par", help="Path to detection parameters")
     parser.add_argument('--large', '-l', action='store_true', default=False,
@@ -105,8 +103,8 @@ if __name__ == "__main__":
     window.setGeometry(100, 50, 900, 900)
     
     window.show()
-    window.init_cams(control_args, args.ov_file, args.detection_file, cal_args, 
-        large=args.large)
+    window.init_cams(control_args, yaml_args['correspondences'], 
+        args.detection_file, cal_args, large=args.large)
     
     if args.corresp:
         from calib import correspondences, point_positions
