@@ -83,14 +83,17 @@ def read_scene_config(fname):
     # Load them from spec and results of curve generator.
     for cix, cam_spec in enumerate(cam_args):
         # Detection and known points.
-        cam_spec['image'] = imread(cam_spec['image'])
-        cam_spec['hp'] = simple_highpass(cam_spec['image'], cpar)
+        cam_spec['image_data'] = imread(cam_spec['image'])
+        cam_spec['hp'] = simple_highpass(cam_spec['image_data'], cpar)
         cam_spec['targs'] = detect_ref_points(cam_spec['hp'], cix, cpar, 
             detection_pars=yaml_args['detection_params'])
         print() # misbehaved liboptv
         
-        cam_spec['known'] = np.loadtxt(cam_spec['known_points'])[:,1:]
-        cam_spec['glass_vec'] = np.r_[cam_spec['glass_vec']]
+        if 'glass_vec' in cam_spec:
+            cam_spec['glass_vec'] = np.r_[cam_spec['glass_vec']]
+        
+        if 'known_points' in cam_spec:
+            cam_spec['known'] = np.loadtxt(cam_spec['known_points'])[:,1:]
         
         if 'ori_file' in cam_spec:
             cam_spec.setdefault('addpar_file', None)

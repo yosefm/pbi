@@ -67,7 +67,7 @@ class PTVScene(TracerScene):
             angs = cam_spec['calib'].get_angles()
             
             # Find 3D positions of the image pixels and show as surface.
-            h, w = cam_spec['image'].shape
+            h, w = cam_spec['image_data'].shape
             hs = np.linspace(0, h, 5)
             ws = np.linspace(0, w, 5)
             
