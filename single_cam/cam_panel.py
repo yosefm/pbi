@@ -121,7 +121,8 @@ class CameraPanel(QtGui.QGraphicsView):
             self.clear_patchset(pset)
     
     def reset(self, control, cam_num, manual_detection_numbers=None, cal=None,
-              detection_file=None, detection_method="default"):
+              detection_file=None, detection_method="default",
+              peak_threshold=0.5):
         """
         This function must be called before the widget is usable. It sets the
         needed configuration for future interactions.
@@ -139,6 +140,8 @@ class CameraPanel(QtGui.QGraphicsView):
             detection file.
         detection_method - either "default" to use OpenPTV detection, or 
             'large' to use a template-matching algorithm.
+        peak_threshold - for the 'large' method, the minimum grey value for a
+            peak to be recognized.
         """
         self._zoom = 1
         self._dragging = False
@@ -158,7 +161,9 @@ class CameraPanel(QtGui.QGraphicsView):
         
         self._detect_method = detection_method
         self._detect_path = detection_file
+        self._detect_thresh = peak_threshold
         self._targets = None
+        
         self.add_patchset('detected')
         self.add_patchset('projected')
         self.add_patchset('matching')
@@ -188,7 +193,11 @@ class CameraPanel(QtGui.QGraphicsView):
         self._hp_img = simple_highpass(self._orig_img, self._cpar)
         pm = QtGui.QPixmap.fromImage(gray2qimage(self._hp_img))
         self._hp_pixmap = self._scene.addPixmap(pm)
-        self._hp_pixmap.setVisible(False)
+        
+        hp_vis = False
+        self._hp_pixmap.setVisible(hp_vis)
+        self._orig_pixmap.setVisible(not hp_vis)
+        
     
     def cam_id(self):
         return self._num
@@ -324,7 +333,8 @@ class CameraPanel(QtGui.QGraphicsView):
     def detect_targets(self):
         # New detection from C:
         if self._detect_method == 'large':
-            targs = detect_large_particles(self._orig_img)
+            targs = detect_large_particles(self._orig_img, 
+                peak_thresh=self._detect_thresh)
         elif self._detect_path is None:
             targs = detect_ref_points(self._hp_img, self._num, self._cpar)
         else:

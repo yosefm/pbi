@@ -13,7 +13,7 @@ import numpy as np
 from skimage.feature import match_template, peak_local_max
 from skimage.morphology import disk
 
-def detect_large_particles(image, approx_size=15):
+def detect_large_particles(image, approx_size=15, peak_thresh=0.5):
     """
     A particle detection method based on template matching followed by peak 
     fitting. It is needed when particles are large, because the other methods
@@ -23,13 +23,14 @@ def detect_large_particles(image, approx_size=15):
     Arguments:
     image - the image to search for particles.
     approx_size - search for particles whose pixel radius is around this value.
+    peak_thresh - minimum grey value for a peak to be recognized.
     
     Returns:
     a TargetArray with the detections.
     """
     sel = disk(approx_size)
     matched = match_template(image, sel, pad_input=True)
-    peaks = np.c_[peak_local_max(matched, threshold_abs=0.5)][:,::-1]
+    peaks = np.c_[peak_local_max(matched, threshold_abs=peak_thresh)][:,::-1]
     targs = TargetArray(len(peaks))
     
     tnum = 0

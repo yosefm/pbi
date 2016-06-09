@@ -25,7 +25,8 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         # Switchboard:
         self._marking_bus = QtCore.QSignalMapper(self)
     
-    def init_cams(self, cpar, ov_file, detect_file, image_dicts, large=False):
+    def init_cams(self, cpar, ov_file, detect_file, image_dicts, 
+        large=False):
         """
         Initializes each camera panel in turn. 
         
@@ -48,7 +49,8 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
             cal = Calibration()
             cal.from_file(cam_dict['ori_file'], cam_dict['addpar_file'])
             cam_panel.reset(cpar, ov_file, cam_num, cal=cal, 
-                detection_file=detect_file, detection_method=method)
+                detection_file=detect_file, detection_method=method, 
+                peak_threshold=cam_dict['peak_threshold'])
             cam_panel.set_image(cam_dict['image'])
             cam_panel.set_highpass_visibility(False)
             cam_panel.point_marked.connect(self.point_marked)
@@ -79,12 +81,11 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
             #print pts_linear
         
 if __name__ == "__main__":
-    import sys, yaml
+    import sys
+    from mixintel.openptv import read_scene_config
     
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--detection-file', type=str, 
-        default="parameters/targ_rec.par", help="Path to detection parameters")
     parser.add_argument('--large', '-l', action='store_true', default=False,
         help="Change detection method to one suitable for large particles.")
     parser.add_argument('scene_args', type=str, 
@@ -92,9 +93,9 @@ if __name__ == "__main__":
     parser.add_argument('--corresp', action='store_true', default=False)
     args = parser.parse_args()
     
-    yaml_args = yaml.load(file(args.scene_args))
-    cal_args = yaml_args['images']
+    yaml_args, cal_args, cpar = read_scene_config(args.scene_args)
     control_args = yaml_args['scene']
+    yaml_args.setdefault('detection_params', "parameters/targ_rec.par")
     
     app = QtGui.QApplication([])
     window = SceneWindow()
@@ -104,7 +105,7 @@ if __name__ == "__main__":
     
     window.show()
     window.init_cams(control_args, yaml_args['correspondences'], 
-        args.detection_file, cal_args, large=args.large)
+        yaml_args['detection_params'], cal_args, large=args.large)
     
     if args.corresp:
         from calib import correspondences, point_positions
