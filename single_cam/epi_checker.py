@@ -48,9 +48,15 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         for cam_num, cam_dict, cam_panel in zip(cam_nums, image_dicts, cam_panels):
             cal = Calibration()
             cal.from_file(cam_dict['ori_file'], cam_dict['addpar_file'])
+            
+            if 'peak_threshold' in cam_dict:
+                pt = cam_dict['peak_threshold']
+            else:
+                pt = 0.5
+                
             cam_panel.reset(cpar, ov_file, cam_num, cal=cal, 
                 detection_file=detect_file, detection_method=method, 
-                peak_threshold=cam_dict['peak_threshold'])
+                peak_threshold=pt)
             cam_panel.set_image(cam_dict['image'])
             cam_panel.set_highpass_visibility(False)
             cam_panel.point_marked.connect(self.point_marked)
