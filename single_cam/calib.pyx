@@ -19,6 +19,11 @@ from optv.transforms cimport metric_to_pixel, pixel_to_metric, \
     correct_brown_affin, dist_to_flat
 from optv.vec_utils cimport vec3d
 
+cdef extern from "optv/parameters.h":
+    ctypedef struct target_par:
+        pass
+    target_par* read_target_par(char *filename)
+
 cdef extern from "optv/ray_tracing.h":
     void ray_tracing(double x, double y, calibration* cal, mm_np mm,
         double X[3], double a[3]);
@@ -45,10 +50,11 @@ cdef extern from "optv/orientation.h":
         vec3d fix[], target pix[], orient_par *flags, double sigmabeta[20])
     orient_par* read_orient_par(char *filename)
     
-cdef extern from "image_processing.h":
-    void targ_rec(unsigned char *img0, unsigned char *img, char *par_file,
-        int xmin, int xmax, int ymin, int ymax, target *pix, int nr, int* num,
-            control_par *cpar)
+cdef extern from "optv/segmentation.h":
+    int targ_rec(unsigned char *img, target_par *targ_par,
+        int xmin, int xmax, int ymin, int ymax, control_par *cpar, int num_cam,
+        target pix[])
+    
 
 cdef extern from "optv/multimed.h":
     void move_along_ray(double glob_Z, vec3d vertex, vec3d direct, vec3d out)
@@ -105,12 +111,12 @@ def detect_ref_points(np.ndarray img, int cam, ControlParams cparam,
         TargetArray t = TargetArray()
         target *ret
         target *targs = <target *> calloc(1024*20, sizeof(target))
-        np.ndarray img0 = img.copy()
+        target_par *tpar = read_target_par(detection_pars)
         int num_targs
     
-    targ_rec(<unsigned char *>img.data, <unsigned char *>img0.data, detection_pars,
-        0, cparam._control_par[0].imx, 1, cparam._control_par[0].imy, targs, 
-        cam, &num_targs, cparam._control_par)
+    num_targs = targ_rec(<unsigned char *>img.data, tpar, 
+        0, cparam._control_par[0].imx, 1, cparam._control_par[0].imy,
+        cparam._control_par, cam, targs)
     
     ret = <target *>realloc(targs, num_targs * sizeof(target))
     if ret == NULL:
