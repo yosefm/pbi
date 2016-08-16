@@ -190,6 +190,7 @@ class CameraPanel(QtGui.QGraphicsView):
         self.clear_patches()
         
         # High-pass image:
+        #self._hp_img = preprocess_image(self._orig_img, 0, self._cpar, 12)
         self._hp_img = simple_highpass(self._orig_img, self._cpar)
         pm = QtGui.QPixmap.fromImage(gray2qimage(self._hp_img))
         self._hp_pixmap = self._scene.addPixmap(pm)
