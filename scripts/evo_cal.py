@@ -14,7 +14,7 @@ from matplotlib import cm
 
 from optv.imgcoord import image_coordinates
 from optv.transforms import convert_arr_metric_to_pixel
-from calib import simple_highpass, detect_ref_points
+from calib import detect_ref_points
 from mixintel.evolution import gen_calib, get_pos, mutation, recombination, choose_breeders
 
 wrap_it_up = False
@@ -105,12 +105,13 @@ def show_current(signum, frame):
 
 # Main part
 import sys, yaml
-from mixintel.openptv import control_params
+from optv.parameters import ControlParams
+from mixintel.openptv import simple_highpass
 
 yaml_file = sys.argv[1]
 yaml_args = yaml.load(file(yaml_file))
 control_args = yaml_args['scene']
-cpar = control_params(**control_args)
+cpar = ControlParams(**control_args)
 cam = yaml_args['target']['number']
 
 fname = yaml_args['target']['image']

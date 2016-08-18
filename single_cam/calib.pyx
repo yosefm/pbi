@@ -11,8 +11,7 @@ import numpy as np
 cimport numpy as np
 
 from optv.tracking_framebuf cimport TargetArray, target
-from optv.calibration cimport Calibration, Exterior, Interior, Glass, ap_52, \
-    calibration
+from optv.calibration cimport Calibration, calibration
 from optv.parameters cimport ControlParams, VolumeParams, mm_np, control_par, \
     volume_par
 from optv.transforms cimport metric_to_pixel, pixel_to_metric, \
@@ -27,10 +26,6 @@ cdef extern from "optv/parameters.h":
 cdef extern from "optv/ray_tracing.h":
     void ray_tracing(double x, double y, calibration* cal, mm_np mm,
         double X[3], double a[3]);
-    
-cdef extern from "optv/image_processing.h":
-    void prepare_image(unsigned char *img, unsigned char *img_hp, 
-        int dim_lp, int filter_hp, char *filter_file, control_par *cpar)
 
 cdef extern from "optv/orientation.h":
     ctypedef double vec2d[2]
@@ -54,7 +49,6 @@ cdef extern from "optv/segmentation.h":
     int targ_rec(unsigned char *img, target_par *targ_par,
         int xmin, int xmax, int ymin, int ymax, control_par *cpar, int num_cam,
         target pix[])
-    
 
 cdef extern from "optv/multimed.h":
     void move_along_ray(double glob_Z, vec3d vertex, vec3d direct, vec3d out)
@@ -84,12 +78,6 @@ cdef extern from "correspondences.h":
 cdef extern from "optv/sortgrid.h":
     target* sortgrid(calibration *cal, control_par *cpar, 
         int nfix, vec3d fix[], int num, int eps, target pix[])
-
-def simple_highpass(np.ndarray img, ControlParams cparam):
-    cdef np.ndarray hp = np.empty_like(img)
-    prepare_image(<unsigned char *>img.data, <unsigned char *>hp.data, 12, 0, 
-        NULL, cparam._control_par)
-    return hp
 
 ctypedef np.float64_t pos_t
 

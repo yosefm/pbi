@@ -8,13 +8,14 @@ Created on Sun Jul 19 14:07:11 2015
 from PyQt4 import QtCore, QtGui
 import numpy as np, matplotlib.pyplot as pl
 
-from calib import simple_highpass, detect_ref_points, \
+from calib import detect_ref_points, \
     external_calibration, match_detection_to_ref, full_calibration
 
 from optv.calibration import Calibration
 from optv.imgcoord import image_coordinates
 from optv.transforms import convert_arr_metric_to_pixel
 from mixintel.detection import detect_large_particles
+from mixintel.openptv import simple_highpass
 
 def gray2qimage(gray):
     """Convert the 2D numpy array `gray` into a 8-bit QImage with a gray

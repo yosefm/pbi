@@ -14,7 +14,11 @@ from scipy.misc import imread
 
 from optv.parameters import ControlParams
 from optv.calibration import Calibration
-from calib import simple_highpass, detect_ref_points
+from optv.image_processing import preprocess_image
+from calib import detect_ref_points
+
+def simple_highpass(img, cpar):
+    preprocess_image(img, 0, cpar, 12)
 
 def control_params(**control_args):
     """
