@@ -13,7 +13,7 @@ Created on Tue Dec 15 13:39:40 2015
 # proper bindings.
 
 from calib import dumbbell_target_func
-from mixintel.openptv import control_params
+from optv.parameters import ControlParams
 
 def calib_convergence(calib_vec, targets, calibs, active_cams, cpar,
     db_length, db_weight):
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     
     scene_args = yaml_args['scene']
     scene_args['cams'] = len(cal_args)
-    cpar = control_params(**scene_args)
+    cpar = ControlParams(**scene_args)
     
     db_length = yaml_args['dumbbell']['length']
     db_weight = yaml_args['dumbbell']['weight']

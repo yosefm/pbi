@@ -11,7 +11,7 @@ from PyQt4 import QtCore, QtGui
 from cam_calib_base import Ui_CameraCalibration
 
 from optv.calibration import Calibration
-from mixintel.openptv import control_params
+from optv.parameters import ControlParams
 
 class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
     def __init__(self, control_args, cam, ori, addpar, man_file, known_points,
@@ -26,7 +26,7 @@ class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
         cal.from_file(ori, addpar)
         
         control_args.setdefault('cams', 1)
-        control = control_params(**control_args)
+        control = ControlParams(**control_args)
         
         # Subordinate widgets setup:
         self.cam.reset(control, cam, manual_detection_numbers, cal, detect_file)

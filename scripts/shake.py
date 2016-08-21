@@ -15,7 +15,7 @@ if __name__ == "__main__":
     import argparse, yaml, numpy as np
     
     from calib import full_calibration
-    from mixintel.openptv import control_params
+    from optv.parameters import ControlParams
     
     from optv.tracking_framebuf import TargetArray, Frame
     from optv.calibration import Calibration
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     scene_args = yaml_args['scene']
     num_cams = len(cal_args)
     scene_args['cams'] = num_cams
-    cpar = control_params(**scene_args)
+    cpar = ControlParams(**scene_args)
     
     targ_files = [yaml_args['target_template'] % c for c in \
         xrange(1, num_cams + 1)]

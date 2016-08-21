@@ -32,7 +32,7 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         
         Arguments:
         cpar - dictionary of common scene data such as image size, as needed
-            by mixintel.openptv.control_params()
+            by ControlParams()
         ov_file - path to .par file holding observed volume parameters.
         image_dicts - a list of dicts, one per camera. The dict contains the 
             following keys: image (path to image file); ori_file (path to 
