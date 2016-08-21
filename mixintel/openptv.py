@@ -18,7 +18,7 @@ from optv.image_processing import preprocess_image
 from calib import detect_ref_points
 
 def simple_highpass(img, cpar):
-    preprocess_image(img, 0, cpar, 12)
+    return preprocess_image(img, 0, cpar, 12)
 
 def control_params(**control_args):
     """
