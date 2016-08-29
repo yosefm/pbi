@@ -39,16 +39,8 @@ def get_polar_rep(pos, angs):
     
 def gen_calib(inters, R, angs, glass_vec, prim_point, radial_dist, decent):
     pos = get_pos(inters, R, angs)
-    cal = Calibration()
-    cal.set_pos(pos)
-    cal.set_angles(angs)
-    cal.set_primary_point(prim_point)
-    cal.set_radial_distortion(radial_dist)
-    cal.set_decentering(decent)
-    cal.set_affine_trans(np.r_[1,0])
-    cal.set_glass_vec(glass_vec)
-
-    return cal
+    return Calibration(pos, angs, prim_point, radial_dist, decent, 
+        np.r_[1, 0], glass_vec)
 
 def choose_breeders(fits, minimize=True):
     """

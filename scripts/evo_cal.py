@@ -14,7 +14,7 @@ from matplotlib import cm
 
 from optv.imgcoord import image_coordinates
 from optv.transforms import convert_arr_metric_to_pixel
-from calib import detect_ref_points
+from optv.segmentation import target_recognition
 from mixintel.evolution import gen_calib, get_pos, mutation, recombination, choose_breeders
 
 wrap_it_up = False
@@ -105,13 +105,15 @@ def show_current(signum, frame):
 
 # Main part
 import sys, yaml
-from optv.parameters import ControlParams
+from optv.parameters import ControlParams, TargetParams
 from mixintel.openptv import simple_highpass
 
 yaml_file = sys.argv[1]
 yaml_args = yaml.load(file(yaml_file))
+
 control_args = yaml_args['scene']
-cpar = ControlParams(**control_args)
+cpar = ControlParams(1, **control_args)
+targ_par = TargetParams(**yaml_args['detection'])
 cam = yaml_args['target']['number']
 
 fname = yaml_args['target']['image']
@@ -121,7 +123,7 @@ glass_vec = np.r_[yaml_args['target']['glass_vec']]
 image = pl.imread(fname)
 hp = simple_highpass(image, cpar)
 
-tarr = detect_ref_points(hp, cam, cpar)
+tarr = target_recognition(hp, targ_par, cam, cpar)
 targs = np.array([t.pos() for t in tarr])
 
 pop_size = 2500
