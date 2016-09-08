@@ -11,11 +11,11 @@ from PyQt4 import QtCore, QtGui
 from cam_calib_base import Ui_CameraCalibration
 
 from optv.calibration import Calibration
-from optv.parameters import ControlParams
+from optv.parameters import ControlParams, TargetParams
 
 class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
     def __init__(self, control_args, cam, ori, addpar, man_file, known_points,
-                 manual_detection_numbers, detect_file=None):
+                 manual_detection_numbers, detection_args):
         QtGui.QWidget.__init__(self)
         self.setupUi(self)
         
@@ -27,9 +27,10 @@ class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
         
         control_args.setdefault('cams', 1)
         control = ControlParams(**control_args)
+        targ_par = TargetParams(**detection_args)
         
         # Subordinate widgets setup:
-        self.cam.reset(control, cam, manual_detection_numbers, cal, detect_file)
+        self.cam.reset(control, cam, manual_detection_numbers, cal, targ_par)
         self.calpars.set_calibration_obj(cal)
         
         self.txt_ori.setText(ori)
@@ -131,7 +132,7 @@ if __name__ == "__main__":
     conf_args = (scene_args, cal_args['number'], 
         cal_args['ori_file'], cal_args['addpar_file'], 
         cal_args['manual_detection_file'], cal_args['known_points'],
-        cal_args['manual_detection_points'], cal_args['detection_par_file'])
+        cal_args['manual_detection_points'], yaml_args['detection'])
     if cal_args.has_key('detection_method'):
         conf_args = conf_args + (cal_args['detection_method'], )
         

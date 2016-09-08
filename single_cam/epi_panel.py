@@ -26,7 +26,7 @@ class CamPanelEpi(CameraPanel):
         self._marked_patches = []
     
     def reset(self, cpar_file, vpar_file, cam_num, cal=None, 
-        detection_file=None, detection_method='default', peak_threshold=0.5):
+        detection_pars=None, detection_method='default', peak_threshold=0.5):
         """
         Set up the necessary state for analysing an image.
         
@@ -38,7 +38,8 @@ class CamPanelEpi(CameraPanel):
         cam_num - identifier for this camera.
         cal - a Calibration object with camera parameters. If None, one will be 
             created.
-        detection_file - optional path to target detection parameters.
+        detection_pars - a TargetParams object when using default method, can 
+            be None otherwise.
         peak_threshold - for the 'large' method, the minimum grey value for a
             peak to be recognized.
         """
@@ -55,7 +56,7 @@ class CamPanelEpi(CameraPanel):
             self._vpar = VolumeParams(**vpar_file)
         
         CameraPanel.reset(self, cpar, cam_num, cal=cal, 
-            detection_file=detection_file, detection_method=detection_method,
+            detection_pars=detection_pars, detection_method=detection_method,
             peak_threshold=peak_threshold)
         
     def mousePressEvent(self, event):

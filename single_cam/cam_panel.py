@@ -8,12 +8,13 @@ Created on Sun Jul 19 14:07:11 2015
 from PyQt4 import QtCore, QtGui
 import numpy as np, matplotlib.pyplot as pl
 
-from calib import detect_ref_points, \
-    external_calibration, match_detection_to_ref, full_calibration
+from calib import external_calibration, match_detection_to_ref, \
+    full_calibration
 
 from optv.calibration import Calibration
 from optv.imgcoord import image_coordinates
 from optv.transforms import convert_arr_metric_to_pixel
+from optv.segmentation import target_recognition
 from mixintel.detection import detect_large_particles
 from mixintel.openptv import simple_highpass
 
@@ -122,7 +123,7 @@ class CameraPanel(QtGui.QGraphicsView):
             self.clear_patchset(pset)
     
     def reset(self, control, cam_num, manual_detection_numbers=None, cal=None,
-              detection_file=None, detection_method="default",
+              detection_pars=None, detection_method="default",
               peak_threshold=0.5):
         """
         This function must be called before the widget is usable. It sets the
@@ -131,19 +132,22 @@ class CameraPanel(QtGui.QGraphicsView):
         Arguments:
         control - a ControlParams object holding general scene information.
         cam_num - camera number, a unique ID used for identifying the panel 
-            when thgee are several of those in a UI.
+            when there are several of those in a UI.
         manual_detection_numbers - numbers of points in the known-points list
             that are to be used for manual (external) calibration.
         cal - a Calibration object holding initial camera orientation. If None,
             a default calibration will be created, but don't use this unless
             you know what you're doing.
-        detection_file - if not None, a .par file with overrides to the default
-            detection file.
-        detection_method - either "default" to use OpenPTV detection, or 
+        detection_pars - if not None, a TargetParams object. None is allowed
+            only if the detection method is 'large'.
+        detection_method - either 'default' to use OpenPTV detection, or 
             'large' to use a template-matching algorithm.
         peak_threshold - for the 'large' method, the minimum grey value for a
             peak to be recognized.
         """
+        if detection_pars is None and detection_method != "default":
+            raise ValueError("Selected detection method requires a " \
+            "TargetParams object.")
         self._zoom = 1
         self._dragging = False
         self._patch_sets = {}
@@ -161,7 +165,7 @@ class CameraPanel(QtGui.QGraphicsView):
             self._cal = cal
         
         self._detect_method = detection_method
-        self._detect_path = detection_file
+        self._detect_par = detection_pars
         self._detect_thresh = peak_threshold
         self._targets = None
         
@@ -337,11 +341,9 @@ class CameraPanel(QtGui.QGraphicsView):
         if self._detect_method == 'large':
             targs = detect_large_particles(self._orig_img, 
                 peak_thresh=self._detect_thresh)
-        elif self._detect_path is None:
-            targs = detect_ref_points(self._hp_img, self._num, self._cpar)
         else:
-            targs = detect_ref_points(self._hp_img, self._num,
-                self._cpar, self._detect_path)
+            targs = target_recognition(self._hp_img, self._detect_par,
+                self._num, self._cpar)
         
         self.set_targets(targs)
     

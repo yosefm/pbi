@@ -25,7 +25,7 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         # Switchboard:
         self._marking_bus = QtCore.QSignalMapper(self)
     
-    def init_cams(self, cpar, ov_file, detect_file, image_dicts, 
+    def init_cams(self, cpar, ov_file, detect_pars, image_dicts, 
         large=False):
         """
         Initializes each camera panel in turn. 
@@ -34,6 +34,8 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         cpar - dictionary of common scene data such as image size, as needed
             by ControlParams()
         ov_file - path to .par file holding observed volume parameters.
+        detect_pars - a dictionary of detection parameters read from YAML, see
+            optv.TargetParams for the parameter names. 
         image_dicts - a list of dicts, one per camera. The dict contains the 
             following keys: image (path to image file); ori_file (path to 
             corresponding calibration information .ori file); addpar_file 
@@ -55,7 +57,7 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
                 pt = 0.5
                 
             cam_panel.reset(cpar, ov_file, cam_num, cal=cal, 
-                detection_file=detect_file, detection_method=method, 
+                detection_pars=detect_pars, detection_method=method, 
                 peak_threshold=pt)
             cam_panel.set_image(cam_dict['image'])
             cam_panel.set_highpass_visibility(False)
@@ -111,7 +113,7 @@ if __name__ == "__main__":
     
     window.show()
     window.init_cams(control_args, yaml_args['correspondences'], 
-        yaml_args['detection_params'], cal_args, large=args.large)
+        yaml_args['targ_par'], cal_args, large=args.large)
     
     if args.corresp:
         from calib import correspondences, point_positions
