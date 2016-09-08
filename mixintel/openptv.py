@@ -2,7 +2,7 @@
 """
 Code for interacting with liboptv that is pure Python and requires no 
 compilation. Counterpart of calib.pyx in that it could be in liboptv but for
-the bureocratic burden.
+the bureaucratic burden.
 
 Created on Sun Jan 31 14:06:13 2016
 
@@ -12,10 +12,10 @@ import yaml
 import numpy as np
 from scipy.misc import imread
 
-from optv.parameters import ControlParams
+from optv.parameters import ControlParams, TargetParams
 from optv.calibration import Calibration
 from optv.image_processing import preprocess_image
-from calib import detect_ref_points
+from optv.segmentation import target_recognition
 
 def simple_highpass(img, cpar):
     return preprocess_image(img, 0, cpar, 12)
@@ -41,7 +41,8 @@ def read_scene_config(fname):
     fname - path to the config YAML file.
     
     Returns:
-    yaml_args - the raw dict read from file.
+    yaml_args - the raw dict read from file. Added keys: 'targ_par' for the
+        target detection parameters (TargetParams object).
     cam_args - a list of per-camera dicts, as found in the raw YAML with keys 
         added for per-camera derived data structures. Added keys
         are 'image' for the array with image data; 'hp' for the image 
@@ -57,14 +58,16 @@ def read_scene_config(fname):
     
     yaml_args['scene']['cams'] = len(cam_args)
     cpar = ControlParams(**yaml_args['scene'])
-        
+    targ_par = TargetParams(**yaml_args['detection'])
+    yaml_args['targ_par'] = targ_par
+    
     # Load them from spec and results of curve generator.
     for cix, cam_spec in enumerate(cam_args):
         # Detection and known points.
         cam_spec['image_data'] = imread(cam_spec['image'])
         cam_spec['hp'] = simple_highpass(cam_spec['image_data'], cpar)
-        cam_spec['targs'] = detect_ref_points(cam_spec['hp'], cix, cpar, 
-            detection_pars=yaml_args['detection_params'])
+        cam_spec['targs'] = target_recognition(
+            cam_spec['hp'], targ_par, cix, cpar)
         print() # misbehaved liboptv
         
         if 'glass_vec' in cam_spec:
