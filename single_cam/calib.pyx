@@ -18,11 +18,6 @@ from optv.transforms cimport metric_to_pixel, pixel_to_metric, \
     correct_brown_affin, dist_to_flat
 from optv.vec_utils cimport vec3d
 
-cdef extern from "optv/parameters.h":
-    ctypedef struct target_par:
-        pass
-    target_par* read_target_par(char *filename)
-
 cdef extern from "optv/ray_tracing.h":
     void ray_tracing(double x, double y, calibration* cal, mm_np mm,
         double X[3], double a[3]);
@@ -44,11 +39,6 @@ cdef extern from "optv/orientation.h":
     double* orient (calibration* cal_in, control_par *cpar, int nfix, 
         vec3d fix[], target pix[], orient_par *flags, double sigmabeta[20])
     orient_par* read_orient_par(char *filename)
-    
-cdef extern from "optv/segmentation.h":
-    int targ_rec(unsigned char *img, target_par *targ_par,
-        int xmin, int xmax, int ymin, int ymax, control_par *cpar, int num_cam,
-        target pix[])
 
 cdef extern from "optv/multimed.h":
     void move_along_ray(double glob_Z, vec3d vertex, vec3d direct, vec3d out)
@@ -80,39 +70,6 @@ cdef extern from "optv/sortgrid.h":
         int nfix, vec3d fix[], int num, int eps, target pix[])
 
 ctypedef np.float64_t pos_t
-
-def detect_ref_points(np.ndarray img, int cam, ControlParams cparam, 
-    detection_pars="parameters/detect_plate.par"):
-    """
-    Detects reference points on a calibration image.
-    
-    Arguments:
-    np.ndarray img - a numpy array holding the 8-bit gray image.
-    int cam - number of camera that took the picture, needed for getting
-        correct parameters for this image.
-    ControlParams cparam - an object holding general control parameters.
-    
-    Returns:
-    A TargetArray object holding the targets found.
-    """
-    cdef:
-        TargetArray t = TargetArray()
-        target *ret
-        target *targs = <target *> calloc(1024*20, sizeof(target))
-        target_par *tpar = read_target_par(detection_pars)
-        int num_targs
-    
-    num_targs = targ_rec(<unsigned char *>img.data, tpar, 
-        0, cparam._control_par[0].imx, 1, cparam._control_par[0].imy,
-        cparam._control_par, cam, targs)
-    
-    ret = <target *>realloc(targs, num_targs * sizeof(target))
-    if ret == NULL:
-        free(targs)
-        raise MemoryError("Failed to reallocate target array.")
-    
-    t.set(ret, num_targs, 1)
-    return t
 
 def external_calibration(Calibration cal, 
     np.ndarray[ndim=2, dtype=pos_t] ref_pts, 
