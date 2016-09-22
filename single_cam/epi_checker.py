@@ -85,7 +85,7 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
             #pts_linear = np.c_[np.linspace(pts_epi[0,0], pts_epi[-1,0], num_pts),
             #                   np.linspace(pts_epi[0,1], pts_epi[-1,1], num_pts)
             #]
-            print pts_epi
+            #print pts_epi
             #print pts_linear
         
 if __name__ == "__main__":

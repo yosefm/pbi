@@ -10,7 +10,7 @@ from libc.stdlib cimport malloc, calloc, realloc, free
 import numpy as np
 cimport numpy as np
 
-from optv.tracking_framebuf cimport TargetArray, target
+from optv.tracking_framebuf cimport TargetArray, target, frame;
 from optv.calibration cimport Calibration, calibration
 from optv.parameters cimport ControlParams, VolumeParams, mm_np, control_par, \
     volume_par
@@ -52,18 +52,18 @@ cdef extern from "optv/epi.h":
         int pnr
         double x, y
 
-cdef extern from "typedefs.h":
+cdef extern from "optv/correspondences.h":
     ctypedef struct n_tupel:
         int p[4]
-
-cdef extern from "correspondences.h":
+        
     enum:
         nmax
+        
     void quicksort_target_y(target *pix, int num)
     void quicksort_coord2d_x(coord_2d *crd, int num)
-    int correspondences_4 (target pix[][nmax], coord_2d geo[][nmax], int num[],
-        volume_par *vpar, control_par *cpar, calibration cals[], n_tupel *con,
-        int match_counts[])
+    n_tupel* corresp "correspondences" (frame *frm, coord_2d **corrected, 
+        volume_par *vpar, control_par *cpar, calibration **calib,
+        int match_counts[]);
 
 cdef extern from "optv/sortgrid.h":
     target* sortgrid(calibration *cal, control_par *cpar, 
@@ -388,24 +388,32 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
         int match
         int *num = <int *> malloc(len(cals) * sizeof(int))
         
-        calibration *calib = <calibration *> malloc(
-            len(cals) * sizeof(calibration))
+        calibration **calib = <calibration **> malloc(
+            len(cals) * sizeof(calibration *))
         TargetArray targ
         
         target *pix = <target *> malloc(num_cams*nmax * sizeof(target))
         target *curr_pix
         
         coord_2d *geo = <coord_2d *> malloc(num_cams*nmax * sizeof(coord_2d))
+        coord_2d **corrected = <coord_2d **> malloc(
+            num_cams * sizeof(coord_2d *))
         coord_2d *curr_geo
         
         # Return buffers:
         int *match_counts = <int *> malloc(num_cams * sizeof(int))
-        n_tupel *corresp_buf = <n_tupel *> malloc(nmax * sizeof(n_tupel))
+        n_tupel *corresp_buf
+        
+        frame frm;
+    
+    # Initialize frame partially, without the extra momory used by init_frame.
+    frm.targets = <target**> calloc(num_cams, sizeof(target*))
+    frm.num_targets = <int *> calloc(num_cams, sizeof(int))
     
     # Move targets to a C array and create the flat-camera version expected
     # by correspondences_4.
     for cam in range(num_cams):
-        calib[cam] = (<Calibration>cals[cam])._calibration[0]
+        calib[cam] = (<Calibration>cals[cam])._calibration
         targ = img_pts[cam]
         num[cam] = len(targ)
         
@@ -422,18 +430,22 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
             # Flat image coordinates:
             pixel_to_metric(&x, &y, curr_pix.x, curr_pix.y, 
                 cparam._control_par);
-            dist_to_flat(x, y, &(calib[cam]), 
+            dist_to_flat(x, y, calib[cam], 
                 &(curr_geo[0].x), &(curr_geo[0].y), 0.0001);
             
             curr_pix = &(curr_pix[1])
             curr_geo = &(curr_geo[1])
         
         quicksort_coord2d_x (&(geo[cam*nmax]), len(targ))
+        
+        frm.targets[cam] = &(pix[cam*nmax])
+        frm.num_targets[cam] = len(targ)
+        corrected[cam] = &(geo[cam*nmax])
     
     # The biz:
-    match = correspondences_4 (<pix_buf>pix, <geo_buf>geo, num,
-        vparam._volume_par, cparam._control_par, calib, 
-        corresp_buf, match_counts)
+    corresp_buf = corresp(&frm, corrected, 
+        vparam._volume_par, cparam._control_par, calib, match_counts);
+    print [match_counts[i] for i in xrange(num_cams)]
     
     # Distribute data to return structures:
     sorted_pos = [None]*(num_cams - 1)
@@ -473,6 +485,8 @@ def correspondences(list img_pts, list cals, VolumeParams vparam,
             targ._tarr[pt] = curr_pix[pt]
     
     num_targs = match_counts[num_cams - 1]
+    free(frm.targets)
+    free(frm.num_targets)
     free(calib)
     free(pix)
     free(geo)
