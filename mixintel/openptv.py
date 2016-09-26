@@ -16,6 +16,7 @@ from optv.parameters import ControlParams, TargetParams
 from optv.calibration import Calibration
 from optv.image_processing import preprocess_image
 from optv.segmentation import target_recognition
+from optv.tracking_framebuf import CORRES_NONE
 
 def simple_highpass(img, cpar):
     return preprocess_image(img, 0, cpar, 12)
@@ -33,6 +34,25 @@ def intersect_known_points(point_list):
         current_set = current_set[np.any(in_both, axis=0)]
     return current_set
 
+def count_unused_targets(targs):
+    """
+    Just go over all targets in all cameras and count the number that have no
+    correspondence number.
+    
+    Arguments:
+    targs - list of per-camera TargetArray objects.
+    
+    Returns:
+    the total number of unused targets.
+    """
+    count = 0
+    for cam in targs:
+        for t in cam:
+            if t.tnr() == CORRES_NONE:
+                count += 1
+    return count
+    # yes, it's that stupid.
+    
 def read_scene_config(fname):
     """
     Extract a YAML configuration file into regular constituents.

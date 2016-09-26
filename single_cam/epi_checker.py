@@ -90,7 +90,7 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         
 if __name__ == "__main__":
     import sys
-    from mixintel.openptv import read_scene_config
+    from mixintel.openptv import read_scene_config, count_unused_targets
     
     import argparse
     parser = argparse.ArgumentParser()
@@ -130,6 +130,8 @@ if __name__ == "__main__":
             #print get_polar_rep(cals[-1].get_pos(), cals[-1].get_angles())
         
         sets = correspondences(targs, cals, cam._vpar, cam._cpar)[0]
+        print "Unused: %d" % count_unused_targets(targs)
+        
         names = ['quads', 'triplets', 'pairs']
         colors = ['red', 'green', 'orange']
         for pset, clique_name, cross_color in zip(sets, names, colors):
