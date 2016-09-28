@@ -7,7 +7,7 @@ Created on Wed Jan  6 15:46:13 2016
 @author: yosef
 """
 from itertools import izip
-from optv.tracking_framebuf import TargetArray
+from optv.tracking_framebuf import TargetArray, CORRES_NONE
 
 import numpy as np
 from skimage.feature import match_template, peak_local_max
@@ -39,8 +39,8 @@ def detect_large_particles(image, approx_size=15, peak_thresh=0.5):
         t.set_pnr(tnum)
         t.set_sum_grey_value(10) # whatever
         t.set_pixel_counts(approx_size**2 * 4, approx_size*2, approx_size*2)
-        t.set_tnr(-1) # The official "correspondence not found" that the rest
-                      # of the code expects.
+        t.set_tnr(CORRES_NONE) # The official "correspondence not found" that 
+                               # the rest of the code expects.
         tnum += 1
     
     return targs

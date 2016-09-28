@@ -26,7 +26,8 @@ class CamPanelEpi(CameraPanel):
         self._marked_patches = []
     
     def reset(self, cpar_file, vpar_file, cam_num, cal=None, 
-        detection_pars=None, detection_method='default', peak_threshold=0.5):
+        detection_pars=None, detection_method='default', peak_threshold=0.5,
+        radius=20):
         """
         Set up the necessary state for analysing an image.
         
@@ -42,6 +43,7 @@ class CamPanelEpi(CameraPanel):
             be None otherwise.
         peak_threshold - for the 'large' method, the minimum grey value for a
             peak to be recognized.
+        radius - for the 'large' method, expected particle radius
         """
         if type(cpar_file) is str:
             cpar = ControlParams(4)
@@ -74,11 +76,11 @@ class CamPanelEpi(CameraPanel):
         elif event.button() == QtCore.Qt.MiddleButton:
             CameraPanel.mousePressEvent(self, event)
     
-    def set_image(self, image_name):
+    def set_image(self, image_name, hp_vis):
         """
         Assumes "reset" has been called.
         """
-        CameraPanel.set_image(self, image_name)
+        CameraPanel.set_image(self, image_name, hp_vis)
         self.detect_targets()
         
     def mark_point(self, coord):

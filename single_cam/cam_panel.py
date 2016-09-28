@@ -124,7 +124,7 @@ class CameraPanel(QtGui.QGraphicsView):
     
     def reset(self, control, cam_num, manual_detection_numbers=None, cal=None,
               detection_pars=None, detection_method="default",
-              peak_threshold=0.5):
+              peak_threshold=0.5, radius=20):
         """
         This function must be called before the widget is usable. It sets the
         needed configuration for future interactions.
@@ -144,6 +144,8 @@ class CameraPanel(QtGui.QGraphicsView):
             'large' to use a template-matching algorithm.
         peak_threshold - for the 'large' method, the minimum grey value for a
             peak to be recognized.
+        radius - for the 'large' method, the expected radius of particles, in
+            pixels.
         """
         if detection_pars is None and detection_method != "default":
             raise ValueError("Selected detection method requires a " \
@@ -167,6 +169,7 @@ class CameraPanel(QtGui.QGraphicsView):
         self._detect_method = detection_method
         self._detect_par = detection_pars
         self._detect_thresh = peak_threshold
+        self._detect_rad = radius
         self._targets = None
         
         self.add_patchset('detected')
@@ -174,12 +177,13 @@ class CameraPanel(QtGui.QGraphicsView):
         self.add_patchset('matching')
         self._residual_patches = []
     
-    def set_image(self, image_name):
+    def set_image(self, image_name, hp_vis=False):
         """
         Replaces the scene with a new one, holding the unadorned base image.
         
         Arguments:
         image_name - path to background image.
+        hp_vis - whether the highpass version is visible or the original.
         """
         self._scene = QtGui.QGraphicsScene(self)
         
@@ -200,7 +204,6 @@ class CameraPanel(QtGui.QGraphicsView):
         pm = QtGui.QPixmap.fromImage(gray2qimage(self._hp_img))
         self._hp_pixmap = self._scene.addPixmap(pm)
         
-        hp_vis = False
         self._hp_pixmap.setVisible(hp_vis)
         self._orig_pixmap.setVisible(not hp_vis)
         
@@ -340,7 +343,7 @@ class CameraPanel(QtGui.QGraphicsView):
         # New detection from C:
         if self._detect_method == 'large':
             targs = detect_large_particles(self._orig_img, 
-                peak_thresh=self._detect_thresh)
+                approx_size=self._detect_rad, peak_thresh=self._detect_thresh)
         else:
             targs = target_recognition(self._hp_img, self._detect_par,
                 self._num, self._cpar)

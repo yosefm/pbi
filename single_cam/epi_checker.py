@@ -26,7 +26,7 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         self._marking_bus = QtCore.QSignalMapper(self)
     
     def init_cams(self, cpar, ov_file, detect_pars, image_dicts, 
-        large=False):
+        large=False, radius=20):
         """
         Initializes each camera panel in turn. 
         
@@ -41,6 +41,8 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
             corresponding calibration information .ori file); addpar_file 
             (path to camera distortion parameters file).
         large - change detection method to template matching.
+        radius - for the large detection method, expected radius of the 
+            particles.
         """
         cam_panels = self.findChildren(CamPanelEpi)
         cam_nums = range(len(cam_panels))
@@ -58,8 +60,8 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
                 
             cam_panel.reset(cpar, ov_file, cam_num, cal=cal, 
                 detection_pars=detect_pars, detection_method=method, 
-                peak_threshold=pt)
-            cam_panel.set_image(cam_dict['image'])
+                peak_threshold=pt, radius=radius)
+            cam_panel.set_image(cam_dict['image'], hp_vis=large)
             cam_panel.set_highpass_visibility(False)
             cam_panel.point_marked.connect(self.point_marked)
     
@@ -110,10 +112,15 @@ if __name__ == "__main__":
     
     #br = window._scene.itemsBoundingRect()
     window.setGeometry(100, 50, 900, 900)
-    
     window.show()
+
+    if args.large and 'seq' in yaml_args:
+        radius = yaml_args['seq']['radius']
+    else:
+        radius = 20
+        
     window.init_cams(control_args, yaml_args['correspondences'], 
-        yaml_args['targ_par'], cal_args, large=args.large)
+        yaml_args['targ_par'], cal_args, large=args.large, radius=radius)
     
     if args.corresp:
         from calib import correspondences, point_positions
