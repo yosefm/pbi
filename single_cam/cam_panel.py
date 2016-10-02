@@ -30,7 +30,7 @@ def gray2qimage(gray):
     #crange = gray.min() - gray.max()
     colors = np.linspace(0, 255, 256)
     for i in colors:
-        c = int(colors[i])
+        c = int(colors[int(i)])
         result.setColor(c, QtGui.QColor(c, c, c).rgb())
     return result
 
