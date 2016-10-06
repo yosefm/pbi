@@ -88,7 +88,6 @@ def read_scene_config(fname):
         cam_spec['hp'] = simple_highpass(cam_spec['image_data'], cpar)
         cam_spec['targs'] = target_recognition(
             cam_spec['hp'], targ_par, cix, cpar)
-        print() # misbehaved liboptv
         
         if 'glass_vec' in cam_spec:
             cam_spec['glass_vec'] = np.r_[cam_spec['glass_vec']]
