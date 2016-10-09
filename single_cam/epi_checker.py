@@ -114,8 +114,8 @@ if __name__ == "__main__":
     window.setGeometry(100, 50, 900, 900)
     window.show()
 
-    if args.large and 'seq' in yaml_args:
-        radius = yaml_args['seq']['radius']
+    if args.large and 'sequence' in yaml_args:
+        radius = yaml_args['sequence']['radius']
     else:
         radius = 20
         

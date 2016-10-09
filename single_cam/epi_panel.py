@@ -59,7 +59,7 @@ class CamPanelEpi(CameraPanel):
         
         CameraPanel.reset(self, cpar, cam_num, cal=cal, 
             detection_pars=detection_pars, detection_method=detection_method,
-            peak_threshold=peak_threshold)
+            peak_threshold=peak_threshold, radius=radius)
         
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
