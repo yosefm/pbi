@@ -24,7 +24,6 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <zorder></zorder>
       </widget>
      </item>
      <item row="0" column="0">
@@ -96,6 +95,13 @@
         <widget class="QPushButton" name="mark_none">
          <property name="text">
           <string>None</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="mark_invert">
+         <property name="text">
+          <string>Invert</string>
          </property>
         </widget>
        </item>

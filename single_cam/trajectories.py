@@ -81,6 +81,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
         )
         self.mark_all.clicked.connect(self.mark_all_trajects)
         self.mark_none.clicked.connect(self.mark_no_trajects)
+        self.mark_invert.clicked.connect(self.invert_marks)
     
     def init_cams(self, cals, im_names, cpar):
         """
@@ -126,6 +127,15 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
             if (length >= self.length_from.value()) and \
                 (length <= self.length_to.value()):
                 self.traj_table.item(trj_ix, 0).setCheckState(QtCore.Qt.Unchecked)
+    
+    def invert_marks(self):
+        for trj_ix in xrange(self.traj_table.rowCount()):
+            if self.traj_table.item(trj_ix, 0).checkState() == QtCore.Qt.Unchecked:
+                self.traj_table.item(trj_ix, 0).setCheckState(
+                    QtCore.Qt.Checked)
+            else:
+                self.traj_table.item(trj_ix, 0).setCheckState(
+                    QtCore.Qt.Unchecked)
     
     def add_trajectory(self, trajid):
         """
