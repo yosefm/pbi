@@ -141,6 +141,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
         cam_panels = self.findChildren(CameraPanel)
         
         pen = QtGui.QPen(QtGui.QColor("yellow"))
+        bpen = QtGui.QPen(QtGui.QColor("cyan"))
         rad = 5
         
         for panel in cam_panels:
@@ -154,6 +155,12 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
                 p = panel._scene.addEllipse(x - rad, y - rad, 2*rad, 2*rad, 
                     pen=pen)
                 panel._patch_sets[trajid].push(p)
+            
+            # Mark beginning of trajectory:
+            p = panel._scene.addEllipse(
+                proj[0,0] - rad, proj[0,1] - rad, 2*rad, 2*rad, pen=bpen)
+            panel._patch_sets[trajid].push(p)
+            
     
     def _iter_selected_trajectories(self):
         """
