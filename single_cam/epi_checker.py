@@ -25,8 +25,7 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         # Switchboard:
         self._marking_bus = QtCore.QSignalMapper(self)
     
-    def init_cams(self, cpar, ov_file, detect_pars, image_dicts, 
-        large=False, radius=20):
+    def init_cams(self, cpar, ov_file, image_dicts, **det_pars):
         """
         Initializes each camera panel in turn. 
         
@@ -34,33 +33,27 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         cpar - dictionary of common scene data such as image size, as needed
             by ControlParams()
         ov_file - path to .par file holding observed volume parameters.
-        detect_pars - a dictionary of detection parameters read from YAML, see
-            optv.TargetParams for the parameter names. 
-        image_dicts - a list of dicts, one per camera. The dict contains the 
-            following keys: image (path to image file); ori_file (path to 
-            corresponding calibration information .ori file); addpar_file 
-            (path to camera distortion parameters file).
-        large - change detection method to template matching.
-        radius - for the large detection method, expected radius of the 
-            particles.
+        det_pars - passed on directly to base.
         """
         cam_panels = self.findChildren(CamPanelEpi)
         cam_nums = range(len(cam_panels))
-        method = 'large' if large else 'default'
         cpar.setdefault('cams', len(cam_nums))
+        
+        large = False
+        if 'detection_method' in det_pars \
+                and det_pars['detection_method'] != 'default':
+            large = True
         
         for cam_num, cam_dict, cam_panel in zip(cam_nums, image_dicts, cam_panels):
             cal = Calibration()
             cal.from_file(cam_dict['ori_file'], cam_dict['addpar_file'])
             
             if 'peak_threshold' in cam_dict:
-                pt = cam_dict['peak_threshold']
+                det_pars['peak_threshold'] = cam_dict['peak_threshold']
             else:
-                pt = 0.5
-                
-            cam_panel.reset(cpar, ov_file, cam_num, cal=cal, 
-                detection_pars=detect_pars, detection_method=method, 
-                peak_threshold=pt, radius=radius)
+                det_pars['peak_threshold'] = 0.5
+            
+            cam_panel.reset(cpar, ov_file, cam_num, cal=cal, **det_pars)
             cam_panel.set_image(cam_dict['image'], hp_vis=large)
             cam_panel.set_highpass_visibility(False)
             cam_panel.point_marked.connect(self.point_marked)
@@ -82,13 +75,8 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         for cam_num, cam_panel in enumerate(cam_panels):
             if cam_num == marked_cam_num:
                 continue
-            pts_epi = cam_panel.draw_epipolar_curve(point, calibration, 
+            cam_panel.draw_epipolar_curve(point, calibration, 
                 num_pts, marked_cam_num)
-            #pts_linear = np.c_[np.linspace(pts_epi[0,0], pts_epi[-1,0], num_pts),
-            #                   np.linspace(pts_epi[0,1], pts_epi[-1,1], num_pts)
-            #]
-            #print pts_epi
-            #print pts_linear
         
 if __name__ == "__main__":
     import sys
@@ -96,7 +84,9 @@ if __name__ == "__main__":
     
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--large', '-l', action='store_true', default=False,
+    parser.add_argument(
+        '--method', '-m', default='default', 
+        choices=['default', 'large', 'dog'],
         help="Change detection method to one suitable for large particles.")
     parser.add_argument('scene_args', type=str, 
         help="Path to 4-camera scene parameters (yaml)")
@@ -114,13 +104,23 @@ if __name__ == "__main__":
     window.setGeometry(100, 50, 900, 900)
     window.show()
 
-    if args.large and 'sequence' in yaml_args:
-        radius = yaml_args['sequence']['radius']
+    if args.method == 'large':
+        if 'sequence' in yaml_args:
+            radius = yaml_args['sequence']['radius']
+        else:
+            radius = 20
+        det_pars = {'radius': radius}
+    elif args.method == 'dog':
+        # This is new enough that sequence is always in yaml_args
+        det_pars = {'threshold': yaml_args['sequence']['threshold']}
+    elif args.method == 'default':
+        det_pars = {'target_pars': yaml_args['targ_par']}
     else:
-        radius = 20
-        
-    window.init_cams(control_args, yaml_args['correspondences'], 
-        yaml_args['targ_par'], cal_args, large=args.large, radius=radius)
+        raise ValueError('Detection method not recognized')
+    
+    det_pars['detection_method'] = args.method
+    window.init_cams(
+        control_args, yaml_args['correspondences'], cal_args, **det_pars)
     
     if args.corresp:
         from calib import correspondences, point_positions

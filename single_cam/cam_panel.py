@@ -15,7 +15,7 @@ from optv.calibration import Calibration
 from optv.imgcoord import image_coordinates
 from optv.transforms import convert_arr_metric_to_pixel
 from optv.segmentation import target_recognition
-from mixintel.detection import detect_large_particles
+from mixintel.detection import detect_large_particles, detect_blobs
 from mixintel.openptv import simple_highpass
 
 def gray2qimage(gray):
@@ -123,8 +123,7 @@ class CameraPanel(QtGui.QGraphicsView):
             self.clear_patchset(pset)
     
     def reset(self, control, cam_num, manual_detection_numbers=None, cal=None,
-              detection_pars=None, detection_method="default",
-              peak_threshold=0.5, radius=20):
+              detection_method="default", **detection_pars):
         """
         This function must be called before the widget is usable. It sets the
         needed configuration for future interactions.
@@ -138,18 +137,31 @@ class CameraPanel(QtGui.QGraphicsView):
         cal - a Calibration object holding initial camera orientation. If None,
             a default calibration will be created, but don't use this unless
             you know what you're doing.
-        detection_pars - if not None, a TargetParams object. None is allowed
-            only if the detection method is 'large'.
         detection_method - either 'default' to use OpenPTV detection, or 
             'large' to use a template-matching algorithm.
-        peak_threshold - for the 'large' method, the minimum grey value for a
-            peak to be recognized.
-        radius - for the 'large' method, the expected radius of particles, in
-            pixels.
+        detection_pars - parameters specific to each detection method, as 
+            specified below.
+        
+        Parameters for 'default' detection:
+        target_pars - a TargetParams object.
+        
+        Parameters for 'large' method:
+        peak_threshold - minimum grey value for a peak to be recognized.
+        radius - the expected radius of particles, in pixels.
+        
+        Parameters for 'dog' method:
+        threshold - minimum grey value for blob pixels.
         """
-        if detection_pars is None and detection_method != "default":
+        if detection_pars is None:
+            detection_pars = {}
+        detection_pars.setdefault('peak_threshold', 0.5)
+        detection_pars.setdefault('radius', 20)
+        
+        if detection_method == "default" \
+                and 'target_pars' not in detection_pars:
             raise ValueError("Selected detection method requires a " \
-            "TargetParams object.")
+                "TargetParams object.")
+        
         self._zoom = 1
         self._dragging = False
         self._patch_sets = {}
@@ -168,8 +180,6 @@ class CameraPanel(QtGui.QGraphicsView):
         
         self._detect_method = detection_method
         self._detect_par = detection_pars
-        self._detect_thresh = peak_threshold
-        self._detect_rad = radius
         self._targets = None
         
         self.add_patchset('detected')
@@ -342,11 +352,16 @@ class CameraPanel(QtGui.QGraphicsView):
     def detect_targets(self):
         # New detection from C:
         if self._detect_method == 'large':
-            targs = detect_large_particles(self._orig_img, 
-                approx_size=self._detect_rad, peak_thresh=self._detect_thresh)
+            targs = detect_large_particles(
+                self._orig_img, approx_size=self._detect_par['radius'], 
+                peak_thresh=self._detect_par['peak_threshold'])
+        elif self._detect_method == 'dog':
+            targs = detect_blobs(
+                self._orig_img, thresh=self._detect_par['threshold'])
         else:
-            targs = target_recognition(self._hp_img, self._detect_par,
-                self._num, self._cpar)
+            targs = target_recognition(
+                self._hp_img, self._detect_par['target_pars'], self._num, 
+                self._cpar)
         
         self.set_targets(targs)
     

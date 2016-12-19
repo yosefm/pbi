@@ -25,9 +25,7 @@ class CamPanelEpi(CameraPanel):
         self._marked_pts = []
         self._marked_patches = []
     
-    def reset(self, cpar_file, vpar_file, cam_num, cal=None, 
-        detection_pars=None, detection_method='default', peak_threshold=0.5,
-        radius=20):
+    def reset(self, cpar_file, vpar_file, cam_num, cal=None, **det_pars):
         """
         Set up the necessary state for analysing an image.
         
@@ -39,11 +37,7 @@ class CamPanelEpi(CameraPanel):
         cam_num - identifier for this camera.
         cal - a Calibration object with camera parameters. If None, one will be 
             created.
-        detection_pars - a TargetParams object when using default method, can 
-            be None otherwise.
-        peak_threshold - for the 'large' method, the minimum grey value for a
-            peak to be recognized.
-        radius - for the 'large' method, expected particle radius
+        **det_pars - passed on directly to base class.
         """
         if type(cpar_file) is str:
             cpar = ControlParams(4)
@@ -57,9 +51,7 @@ class CamPanelEpi(CameraPanel):
         else:
             self._vpar = VolumeParams(**vpar_file)
         
-        CameraPanel.reset(self, cpar, cam_num, cal=cal, 
-            detection_pars=detection_pars, detection_method=detection_method,
-            peak_threshold=peak_threshold, radius=radius)
+        CameraPanel.reset(self, cpar, cam_num, cal=cal, **det_pars)
         
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:

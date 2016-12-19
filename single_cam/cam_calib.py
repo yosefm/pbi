@@ -7,7 +7,7 @@ Created on Mon Jul 20 09:46:14 2015
 
 import numpy as np
 
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
 from cam_calib_base import Ui_CameraCalibration
 
 from optv.calibration import Calibration
@@ -30,7 +30,8 @@ class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
         targ_par = TargetParams(**detection_args)
         
         # Subordinate widgets setup:
-        self.cam.reset(control, cam, manual_detection_numbers, cal, targ_par)
+        self.cam.reset(control, cam, manual_detection_numbers, cal, 
+            target_pars=targ_par)
         self.calpars.set_calibration_obj(cal)
         
         self.txt_ori.setText(ori)
