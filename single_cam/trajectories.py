@@ -83,7 +83,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
         self.mark_none.clicked.connect(self.mark_no_trajects)
         self.mark_invert.clicked.connect(self.invert_marks)
     
-    def init_cams(self, cals, im_names, cpar):
+    def init_cams(self, cals, im_names, cpar, targ_par):
         """
         Initializes each camera panel in turn. 
         
@@ -92,6 +92,8 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
         img_names - for each camera, path to the image file it displays.
         cpar - a ControlParams instance holding common scene data such as image
             size.
+        targ_par - a TargetParams object, not needed for us but needed for the 
+            base class.
         """
         self._cpar = cpar
         
@@ -99,7 +101,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
         cam_nums = range(len(cam_panels))
         
         for num, cal, img, panel in zip(cam_nums, cals, im_names, cam_panels):
-            panel.reset(cpar, num, cal=cal)
+            panel.reset(cpar, num, cal=cal, target_pars=targ_par)
             panel.set_image(img)
     
     def toggle_trajectory(self, trajid, visibility):
@@ -206,7 +208,7 @@ if __name__ == "__main__":
     parser.add_argument('config', help="A scene-parameters YAML.")
     args = parser.parse_args()
     
-    _, cam_args, cpar = read_scene_config(args.config)
+    yaml_args, cam_args, cpar = read_scene_config(args.config)
     cals = [ca['calib'] for ca in cam_args]
     imgs = [ca['image'] for ca in cam_args]
     
@@ -216,7 +218,7 @@ if __name__ == "__main__":
     window.setGeometry(100, 50, 1200, 900)
     window.show()
     
-    window.init_cams(cals, imgs, cpar)
+    window.init_cams(cals, imgs, cpar, yaml_args['targ_par'])
     window.set_trajectories(args.data)
     
     # Proper destruction sequence to get rid of pytables' "closing remaining 
