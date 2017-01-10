@@ -149,7 +149,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
         Arguments:
         trajid - the trajectory identifier number.
         """
-        points = self._scn.trajecory_by_id(trajid).pos() * 1000 # expects mm
+        points = self._scn.trajectory_by_id(trajid).pos() * 1000 # expects mm
         cam_panels = self.findChildren(CameraPanel)
         
         pen = QtGui.QPen(QtGui.QColor("yellow"))
@@ -184,7 +184,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
             if chk_item.checkState() == QtCore.Qt.Checked:
                 trid = self.traj_table.item(trj_ix, 1).data(
                     QtCore.Qt.DisplayRole).toInt()[0]
-                yield self._scn.trajecory_by_id(trid)
+                yield self._scn.trajectory_by_id(trid)
         
     def export_selected(self):
         """
