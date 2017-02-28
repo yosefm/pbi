@@ -8,13 +8,13 @@ Created on Sun Jul 19 14:07:11 2015
 from PyQt4 import QtCore, QtGui
 import numpy as np, matplotlib.pyplot as pl
 
-from calib import external_calibration, match_detection_to_ref, \
-    full_calibration
+from calib import external_calibration, full_calibration
 
 from optv.calibration import Calibration
 from optv.imgcoord import image_coordinates
 from optv.transforms import convert_arr_metric_to_pixel
 from optv.segmentation import target_recognition
+from optv.orientation import match_detection_to_ref
 from mixintel.detection import detect_large_particles, detect_blobs
 from mixintel.openptv import simple_highpass
 
