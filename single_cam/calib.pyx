@@ -14,6 +14,7 @@ from optv.tracking_framebuf cimport TargetArray, target, frame;
 from optv.calibration cimport Calibration, calibration
 from optv.parameters cimport ControlParams, VolumeParams, mm_np, control_par, \
     volume_par
+from optv.orientation cimport vec2d
 from optv.transforms cimport metric_to_pixel, pixel_to_metric, \
     correct_brown_affin, dist_to_flat
 from optv.vec_utils cimport vec3d
@@ -23,7 +24,6 @@ cdef extern from "optv/ray_tracing.h":
         double X[3], double a[3]);
 
 cdef extern from "optv/orientation.h":
-    ctypedef double vec2d[2]
     ctypedef struct orient_par:
         pass
     enum:
@@ -32,8 +32,6 @@ cdef extern from "optv/orientation.h":
     double weighted_dumbbell_precision(vec2d** targets, int num_targs, 
         int num_cams, mm_np *multimed_pars, calibration* cals[], 
         int db_length, double db_weight)
-    double point_position(vec2d targets[], int num_cams, mm_np *multimed_pars,
-        calibration* cals[], vec3d res);
     int raw_orient(calibration* cal, control_par *cpar, int nfix, vec3d fix[], 
         target pix[]);
     double* orient (calibration* cal_in, control_par *cpar, int nfix, 
@@ -312,47 +310,6 @@ def dumbbell_target_func(np.ndarray[ndim=3, dtype=pos_t] targets,
     
     return weighted_dumbbell_precision(ctargets, num_pts, num_cams, 
         cparam._control_par.mm, calib,  db_length, db_weight)
-
-def point_positions(np.ndarray[ndim=3, dtype=pos_t] targets, 
-    ControlParams cparam, cals):
-    """
-    Calculate the 3D positions of the points given by their 2D projections.
-    
-    Arguments:
-    np.ndarray[ndim=3, dtype=pos_t] targets - (num_targets, num_cams, 2) array,
-        containing the metric coordinates of each target on the image plane of
-        each camera. Cameras must be in the same order for all targets.
-    ControlParams cparam - needed for the parameters of the tank through which
-        we see the targets.
-    cals - a sequence of Calibration objects for each of the cameras, in the 
-        camera order of ``targets``.
-    
-    Returns:
-    res - (n,3) array for n points represented by their targets.
-    rcm - n-length array, the Ray Convergence Measure for eachpoint.
-    """
-    cdef:
-        np.ndarray[ndim=2, dtype=pos_t] res
-        np.ndarray[ndim=1, dtype=pos_t] rcm
-        np.ndarray[ndim=2, dtype=pos_t] targ
-        calibration **calib = cal_list2arr(cals)
-        int cam, num_cams
-    
-    # So we can address targets.data directly instead of get_ptr stuff:
-    targets = np.ascontiguousarray(targets) 
-    
-    num_cams = targets.shape[1]
-    num_pts = targets.shape[0]
-    res = np.empty((num_pts,3))
-    rcm = np.empty(num_pts)
-    
-    for pt in range(num_pts):
-        targ = targets[pt]
-        rcm[pt] = point_position(<vec2d *>(targ.data), num_cams, 
-            cparam._control_par.mm, calib, 
-            <vec3d>np.PyArray_GETPTR2(res, pt, 0))
-    
-    return res, rcm
 
 ctypedef target pix_buf[][nmax]
 ctypedef coord_2d geo_buf[][nmax]

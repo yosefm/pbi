@@ -102,10 +102,11 @@ if __name__ == "__main__":
     from mixintel.detection import detect_large_particles, detect_blobs
     from optv.parameters import VolumeParams
     from optv.segmentation import target_recognition
+    from optv.orientation import point_positions
     from optv.transforms import convert_arr_pixel_to_metric, \
         distorted_to_flat
     
-    from calib import correspondences, point_positions
+    from calib import correspondences
     
     parser = argparse.ArgumentParser()
     parser.add_argument('config', 

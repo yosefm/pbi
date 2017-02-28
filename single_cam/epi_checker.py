@@ -123,7 +123,8 @@ if __name__ == "__main__":
         control_args, yaml_args['correspondences'], cal_args, **det_pars)
     
     if args.corresp:
-        from calib import correspondences, point_positions
+        from calib import correspondences
+        from optv.orientation import point_positions
         from optv.transforms import convert_arr_pixel_to_metric, \
             distorted_to_flat
         #from mixintel.evolution import get_polar_rep

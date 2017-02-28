@@ -13,7 +13,8 @@ from __future__ import print_function
 import sys, numpy as np
 from mixintel.evolution import gen_calib, get_pos
 from optv.transforms import convert_arr_pixel_to_metric, correct_arr_brown_affine
-from calib import correspondences, point_positions
+from optv.orientation import point_positions
+from calib import correspondences
 
 def fitness(solution, detections, glass_vecs, known_points, vpar, cpar, 
     search_radius=3, penalty=250.):
