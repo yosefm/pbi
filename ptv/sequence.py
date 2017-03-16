@@ -6,7 +6,15 @@ Created on Wed Jun  1 10:35:25 2016
 
 @author: yosef
 """
+import numpy as np
 from parallel_runner import PoolWorker
+
+from optv.correspondences import correspondences, MatchedCoords
+from optv.segmentation import target_recognition
+from optv.orientation import point_positions
+
+from mixintel.openptv import simple_highpass
+from mixintel.detection import detect_large_particles, detect_blobs
 
 class FrameProc(PoolWorker):
     """
@@ -40,6 +48,7 @@ class FrameProc(PoolWorker):
         print "processing frame %d" % frame
         
         detections = []
+        corrected = []
         for cix, cam_spec in enumerate(self._cams):
             img = pl.imread(self._seq['template'].format(
                 cam=cix + 1, frame=frame))
@@ -53,14 +62,17 @@ class FrameProc(PoolWorker):
                 hp = simple_highpass(img, self._cpar)
                 targs = target_recognition(
                     hp, self._tpar, cix, self._cpar)
+            
+            targs.sort_y()
             detections.append(targs)
+            corrected.append(MatchedCoords(targs, self._cpar, self._cals[cix]))
         
         if any([len(det) == 0 for det in detections]):
             return False
         
         # Corresp. + positions.
         sets, corresp, _ = correspondences(
-            detections, self._cals, self._vpar, self._cpar)
+            detections, corrected, self._cals, self._vpar, self._cpar)
         
         # Save targets only after they've been modified:
         for cix in xrange(len(self._cams)):
@@ -71,14 +83,8 @@ class FrameProc(PoolWorker):
         sets = np.concatenate(sets, axis=1)
         corresp = np.concatenate(corresp, axis=1).T
         
-        flat = []
-        for cam, cal in enumerate(self._cals):
-            unused = (sets[cam] == -999)
-            metric = convert_arr_pixel_to_metric(sets[cam], self._cpar)
-            flat.append(distorted_to_flat(metric, cal))
-            flat[-1][unused] = -999
-        
-        flat = np.array(flat)
+        flat = np.array([corrected[cix].get_by_pnrs(corresp[cix]) \
+            for cix in xrange(len(self._cals))])
         pos, rcm = point_positions(
             flat.transpose(1,0,2), self._cpar, self._cals)
         
@@ -94,19 +100,12 @@ class FrameProc(PoolWorker):
             
 if __name__ == "__main__":
     import argparse, time
-    import matplotlib.pyplot as pl, numpy as np
+    import matplotlib.pyplot as pl
     from multiprocessing import Pipe, Queue
     from Queue import Empty
     
-    from mixintel.openptv import read_scene_config, simple_highpass
-    from mixintel.detection import detect_large_particles, detect_blobs
+    from mixintel.openptv import read_scene_config
     from optv.parameters import VolumeParams
-    from optv.segmentation import target_recognition
-    from optv.orientation import point_positions
-    from optv.transforms import convert_arr_pixel_to_metric, \
-        distorted_to_flat
-    
-    from calib import correspondences
     
     parser = argparse.ArgumentParser()
     parser.add_argument('config', 

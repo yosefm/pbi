@@ -348,6 +348,13 @@ class CameraPanel(QtGui.QGraphicsView):
             x, y = targ.pos()
             p = self._scene.addEllipse(x - rad, y - rad, 2*rad, 2*rad, pen=blue)
             self._patch_sets['detected'].push(p)
+    
+    def get_target_array(self):
+        """
+        Return detected targets as a TargetArray object. cf. get_detections()
+        for the data in a numpy array.
+        """
+        return self._targets
         
     def detect_targets(self):
         # New detection from C:

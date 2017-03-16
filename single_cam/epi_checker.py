@@ -123,39 +123,33 @@ if __name__ == "__main__":
         control_args, yaml_args['correspondences'], cal_args, **det_pars)
     
     if args.corresp:
-        from calib import correspondences
+        from optv.correspondences import correspondences, MatchedCoords
         from optv.orientation import point_positions
-        from optv.transforms import convert_arr_pixel_to_metric, \
-            distorted_to_flat
-        #from mixintel.evolution import get_polar_rep
         
         cals = []
         targs = []
+        corrected = []
         for cam in window.findChildren(CamPanelEpi):
             cals.append(cam.calibration())
-            targs.append(cam._targets)
-            #print cals[-1].get_angles()
-            #print get_polar_rep(cals[-1].get_pos(), cals[-1].get_angles())
+            trg = cam.get_target_array()
+            # Not strictly necessary but more like the sequencing this way:
+            trg.sort_y() 
+            targs.append(trg)
+            corrected.append(MatchedCoords(trg, cam._cpar, cals[-1]))
         
-        sets = correspondences(targs, cals, cam._vpar, cam._cpar)[0]
+        sets, pnrs, _ = correspondences(
+            targs, corrected, cals, cam._vpar, cam._cpar)
         print "Unused: %d" % count_unused_targets(targs)
         
         names = ['quads', 'triplets', 'pairs']
         colors = ['red', 'green', 'orange']
-        for pset, clique_name, cross_color in zip(sets, names, colors):
+        for pset, qpnrs, clique_name, cross_color in zip(sets, pnrs, names, colors):
             if pset.shape[1] == 0:
                 continue
             
             flat = []
-            for cam in window.findChildren(CamPanelEpi):
-                cam_cent = cam.calibration().get_primary_point()[:2]
-                
-                unused = pset[cam.cam_id()] == -999
-                metric = convert_arr_pixel_to_metric(pset[cam.cam_id()], 
-                    cam._cpar)
-                flat.append(distorted_to_flat(metric, cam.calibration()))
-                flat[-1][unused] = -999
-                
+            for cix, cam in enumerate(window.findChildren(CamPanelEpi)):
+                flat.append(corrected[cix].get_by_pnrs(qpnrs[cix]))
                 cam.add_correspondence_set(
                     pset[cam.cam_id()], clique_name, cross_color)
             
