@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>768</width>
+    <width>794</width>
     <height>788</height>
    </rect>
   </property>
@@ -174,7 +174,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="CameraPanel" name="cam" native="true">
+      <widget class="CalibPanel" name="cam" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -287,9 +287,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CameraPanel</class>
+   <class>CalibPanel</class>
    <extends>QWidget</extends>
-   <header location="global">cam_panel</header>
+   <header location="global">calib_panel</header>
    <container>1</container>
   </customwidget>
   <customwidget>

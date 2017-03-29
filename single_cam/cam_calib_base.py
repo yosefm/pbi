@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_CameraCalibration(object):
     def setupUi(self, CameraCalibration):
         CameraCalibration.setObjectName(_fromUtf8("CameraCalibration"))
-        CameraCalibration.resize(768, 788)
+        CameraCalibration.resize(794, 788)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -124,7 +124,7 @@ class Ui_CameraCalibration(object):
         self.horizontalLayout_2.addLayout(self.verticalLayout_2)
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.cam = CameraPanel(CameraCalibration)
+        self.cam = CalibPanel(CameraCalibration)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -201,8 +201,8 @@ class Ui_CameraCalibration(object):
         self.btn_number.setText(_translate("CameraCalibration", "Match detrections to reference", None))
         self.btn_full_calib.setText(_translate("CameraCalibration", "Fine tuning", None))
 
+from calib_panel import CalibPanel
 from calib_pars import CalibParameters
-from cam_panel import CameraPanel
 
 if __name__ == "__main__":
     import sys
