@@ -219,11 +219,7 @@ class CameraPanel(QtGui.QGraphicsView):
         self._hp_pixmap.setVisible(vis)
         
     def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            self.add_manual_detection(self.mapToScene(event.pos()))
-        elif event.button() == QtCore.Qt.RightButton:
-            self.rem_last_manual_detection()
-        else: # middle button used for dragging
+        if event.button() == QtCore.Qt.MidButton: # middle button used for dragging
             self._dragging = True
             self._last_pos = event.pos()
     

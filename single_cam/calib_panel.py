@@ -64,6 +64,14 @@ class CalibPanel(CameraPanel):
         self.add_patchset('projected')
         self.add_patchset('matching')
     
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            self.add_manual_detection(self.mapToScene(event.pos()))
+        elif event.button() == QtCore.Qt.RightButton:
+            self.rem_last_manual_detection()
+        else: 
+            CameraPanel.mousePressEvent(self, event)
+    
     def add_manual_detection(self, pos):
         """
         Adds a position clicked by the user to the list of manual detection 
