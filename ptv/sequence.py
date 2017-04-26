@@ -6,7 +6,7 @@ Created on Wed Jun  1 10:35:25 2016
 
 @author: yosef
 """
-import numpy as np
+import numpy as np, matplotlib.pyplot as pl
 from parallel_runner import PoolWorker
 
 from optv.correspondences import correspondences, MatchedCoords
@@ -100,7 +100,6 @@ class FrameProc(PoolWorker):
             
 if __name__ == "__main__":
     import argparse, time
-    import matplotlib.pyplot as pl
     from multiprocessing import Pipe, Queue
     from Queue import Empty
     
