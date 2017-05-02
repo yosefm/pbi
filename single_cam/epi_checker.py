@@ -154,6 +154,6 @@ if __name__ == "__main__":
                     pset[cam.cam_id()], clique_name, cross_color)
             
             flat = np.array(flat)
-            print point_positions(flat.transpose(1,0,2), cam._cpar, cals)[0]
-            
+            #print point_positions(flat.transpose(1,0,2), cam._cpar, cals)[0]
+        print [s.shape[1] for s in sets]
     sys.exit(app.exec_())

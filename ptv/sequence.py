@@ -22,7 +22,7 @@ class FrameProc(PoolWorker):
     correspondence, 3D determination, and writing it all out.
     """
     def __init__(self, tasks, command_pipe, results_queue, # pool comm
-            cals, cam_args, seq_args, tpar, cpar, vpar):
+            cals, cam_args, seq_args, tpar, cpar, vpar, report=False):
         """
         Arguments:
         tasks, command_pipe, results_queue - see :module:``parallel_runner``.
@@ -40,6 +40,7 @@ class FrameProc(PoolWorker):
         self._cals = cals
         self._cams = cam_args
         self._seq = seq_args
+        self._report = report
     
     def job(self, frame):
         """
@@ -78,7 +79,11 @@ class FrameProc(PoolWorker):
         for cix in xrange(len(self._cams)):
             detections[cix].write(
                 seq['targets_template'].format(cam=cix + 1), frame)
-            
+        
+        if self._report:
+            print "Frame " + str(frame) + " had " \
+            + repr([s.shape[1] for s in sets]) + " correspondences."
+        
         # Distinction between quad/trip irrelevant here.
         sets = np.concatenate(sets, axis=1)
         corresp = np.concatenate(corresp, axis=1).T
@@ -95,7 +100,7 @@ class FrameProc(PoolWorker):
             pt_args = (pix + 1,) + tuple(pt) + tuple(corresp[pix])
             rt_is.write("%4d %9.3f %9.3f %9.3f %4d %4d %4d %4d\n" % pt_args)
         rt_is.close()
-        
+            
         return True
             
 if __name__ == "__main__":
@@ -116,6 +121,9 @@ if __name__ == "__main__":
     parser.add_argument(
         '--procs', '-p', default=4, type=int,
         help="Number of parallel processes.")
+    parser.add_argument(
+            '--report', '-r', action='store_true', default=False,
+            help="Say how many of each clique type were found in a frame.")
     args = parser.parse_args()
     
     yaml_args, cam_args, cpar = read_scene_config(args.config)
@@ -134,7 +142,7 @@ if __name__ == "__main__":
         pside, cside = Pipe()
         t = FrameProc(
             tasks, cside, results,cals, cam_args, seq, yaml_args['targ_par'], 
-            cpar, vpar)
+            cpar, vpar, args.report)
         w.append((t, pside))
         t.start()
 

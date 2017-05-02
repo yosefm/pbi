@@ -52,3 +52,18 @@ if __name__ == "__main__":
     
     tracker = Tracker(cpar, vpar, tpar, spar, cals, framebuf_naming)
     tracker.full_forward()
+    
+    # Since tracking misbehaves sometimes on a dirty targets database,
+    # we allow saving a copy of the tracked targets, so that one can nuke the 
+    # target files in the original and start over, still having the results of 
+    # this tracking run saved somewhere safe.
+    if 'targets_copy' in seq_cfg:
+        import shutil, os
+        if not os.path.exists(seq_cfg['targets_copy']):
+            os.mkdir(seq_cfg['targets_copy'])
+        
+        for base in img_base:
+            for frm in xrange(seq_cfg['first'], seq_cfg['last']):
+                src = base + str(frm) + '_targets'
+                shutil.copy(src, seq_cfg['targets_copy'])
+    
