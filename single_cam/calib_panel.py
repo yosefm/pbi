@@ -12,8 +12,8 @@ from PyQt4 import QtCore, QtGui
 import numpy as np
 
 from cam_panel import CameraPanel
-from calib import external_calibration, full_calibration
 
+from optv.orientation import external_calibration, full_calibration
 from optv.imgcoord import image_coordinates
 from optv.transforms import convert_arr_metric_to_pixel
 from optv.orientation import match_detection_to_ref
@@ -209,7 +209,7 @@ class CalibPanel(CameraPanel):
             self.project_cal_points(cal_points)
             self.cal_changed.emit(self.calibration())
     
-    def tune_calibration(self, cal_points):
+    def tune_calibration(self, cal_points, flags):
         """
         update the calibration with results of Gauss-Markov least squares 
         iteration, i.e. the iterative process that adjust the calibration 
@@ -226,7 +226,7 @@ class CalibPanel(CameraPanel):
         self.clear_patchset('resids')
         
         residuals, targ_ix, err_est = full_calibration(
-            self._cal, cal_points, targs, self._cpar)
+            self._cal, cal_points, targs, self._cpar, flags)
         self.report_orientation(err_est)
         
         # Quiver plot of the residuals, scaled to arbitrary size.

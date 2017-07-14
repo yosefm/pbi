@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 from cam_panel import CameraPanel
 from optv.calibration import Calibration
 from optv.parameters import VolumeParams, ControlParams
-from calib import epipolar_curve
+from optv.epipolar import epipolar_curve
 
 class CamPanelEpi(CameraPanel):
     point_marked = QtCore.pyqtSignal(np.ndarray, Calibration, int,

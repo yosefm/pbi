@@ -31,7 +31,6 @@ class CalibParameters(QtGui.QWidget, Ui_calibPars):
         """
         self._cal = cal_obj
         self.update_all_fields()
-        self.load_free_vars()
         
         # Routing table:
         self.posx.valueChanged.connect(self.pos_spinbox_changed)
@@ -52,15 +51,6 @@ class CalibParameters(QtGui.QWidget, Ui_calibPars):
         self.decent_p1.valueChanged.connect(self.distortion_sb_changed)
         self.decent_p2.valueChanged.connect(self.distortion_sb_changed)
         
-        self.use_cc.stateChanged.connect(self.save_free_vars)
-        self.use_xh.stateChanged.connect(self.save_free_vars)
-        self.use_yh.stateChanged.connect(self.save_free_vars)
-        self.use_k1.stateChanged.connect(self.save_free_vars)
-        self.use_k2.stateChanged.connect(self.save_free_vars)
-        self.use_k3.stateChanged.connect(self.save_free_vars)
-        self.use_p1.stateChanged.connect(self.save_free_vars)
-        self.use_p2.stateChanged.connect(self.save_free_vars)
-    
     def calibration(self):
         return self._cal
             
@@ -89,25 +79,23 @@ class CalibParameters(QtGui.QWidget, Ui_calibPars):
         self.decent_p1.setValue(p1)
         self.decent_p2.setValue(p2)
     
-    def load_free_vars(self):
+    def set_free_vars(self, set_names):
         controls = [self.use_cc, self.use_xh, self.use_yh, self.use_k1,
                     self.use_k2, self.use_k3, self.use_p1, self.use_p2]
-        fv = np.loadtxt("parameters/orient.par")[1:]
+        names = ['cc', 'xh', 'yh', 'k1', 'k2', 'k3', 'p1', 'p2', 
+            'scale', 'shear']
         
-        for state, checkbox in zip(fv, controls):
-            checkbox.setChecked(state == 1)
-    
-    def save_free_vars(self):
+        for name, checkbox in zip(names, controls):
+            if name in set_names:
+                checkbox.setChecked(True)
+        
+    def get_free_vars(self):
         controls = [self.use_cc, self.use_xh, self.use_yh, self.use_k1,
                     self.use_k2, self.use_k3, self.use_p1, self.use_p2]
-        
-        # The extra zeros are for use_flag, scx, she and interf
-        fv = np.zeros((len(controls) + 4, 1))
-        
-        for cix in xrange(len(controls)):
-            fv[cix + 1] = (1 if controls[cix].isChecked() else 0)
-        
-        np.savetxt("parameters/orient.par", fv, fmt="%d")
+        names = ['cc', 'xh', 'yh', 'k1', 'k2', 'k3', 'p1', 'p2', 
+            'scale', 'shear']
+        return [name for name, control in zip(names, controls) \
+            if control.isChecked()]
     
     def pos_spinbox_changed(self, newval):
         newpos = np.r_[self.posx.value(), self.posy.value(), self.posz.value()]

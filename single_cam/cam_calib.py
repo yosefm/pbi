@@ -15,7 +15,7 @@ from optv.parameters import ControlParams, TargetParams
 
 class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
     def __init__(self, control_args, cam, ori, addpar, man_file, known_points,
-                 manual_detection_numbers, detection_args):
+                 manual_detection_numbers, detection_args, tune_flags=[]):
         QtGui.QWidget.__init__(self)
         self.setupUi(self)
         
@@ -32,6 +32,7 @@ class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
         # Subordinate widgets setup:
         self.cam.reset(control, cam, manual_detection_numbers, cal, 
             target_pars=targ_par)
+        self.calpars.set_free_vars(tune_flags)
         self.calpars.set_calibration_obj(cal)
         
         self.txt_ori.setText(ori)
@@ -65,7 +66,7 @@ class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
         
         self.btn_number.clicked.connect(lambda: self.cam.number_detections(self._cp))
         
-        self.btn_full_calib.clicked.connect(lambda: self.cam.tune_calibration(self._cp))
+        self.btn_full_calib.clicked.connect(self.call_full_calibration_fith_flags)
         self.btn_full_calib.clicked.connect(lambda: self.show_resids.setChecked(True))
         
         self.btn_save_cal.clicked.connect(self.save_calibration)
@@ -112,6 +113,9 @@ class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
     def save_point_sets(self):
         self.cam.save_point_sets(str(self.txt_detected.text()),
             str(self.txt_matched.text()), self._cp)
+    
+    def call_full_calibration_fith_flags(self):
+        self.cam.tune_calibration(self._cp, self.calpars.get_free_vars())
         
 if __name__ == "__main__":
     import sys
@@ -133,7 +137,8 @@ if __name__ == "__main__":
     conf_args = (scene_args, cal_args['number'], 
         cal_args['ori_file'], cal_args['addpar_file'], 
         cal_args['manual_detection_file'], cal_args['known_points'],
-        cal_args['manual_detection_points'], yaml_args['detection'])
+        cal_args['manual_detection_points'], yaml_args['detection'],
+        yaml_args['default_free_vars'])
     if cal_args.has_key('detection_method'):
         conf_args = conf_args + (cal_args['detection_method'], )
         
