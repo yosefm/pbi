@@ -11,7 +11,7 @@ it may not be as well organized as your ideal package (yet), but it's still quit
 useful.
 
 The package relies on OpenPTV for the heavy machinery, and most of the relevant 
-documentation and tests is in OpenPTV. There is always some documentation 
+documentation and tests are in OpenPTV. There is always some documentation 
 available (at least for the command-line tools) by running them with the '--help' 
 option. E.g.
 
