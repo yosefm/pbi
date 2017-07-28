@@ -1,0 +1,88 @@
+
+PBI - the Particle Bureau of Investigation
+==========================================
+
+PBI is a toolbox for 3D-PTV (Particle Tracking Velocimetry). It incorporates a 
+number of graphical tools with a set of command-line scripts for performing the 
+different stages of a 3D-PTV analysis.
+
+The package has been separated from Yosef Meller's PhD repository, and therefore 
+it may not be as well organized as your ideal package (yet), but it's still quite 
+useful.
+
+The package relies on OpenPTV for the heavy machinery, and most of the relevant 
+documentation and tests are in OpenPTV. There is always some documentation 
+available (at least for the command-line tools) by running them with the '--help' 
+option. E.g.
+
+  > ptv/dumbbell.py --help
+
+All scripts work with YAML configuration files. I should add some examples, right? 
+hopefully I'll do so soon, in the meantime just ask me.
+
+
+Tools in the package
+--------------------
+
+Calibration can be done mainly with these tools:
+
+ * ui/cam_calib.py is a graphical tool similar to PyPTV except very different. It 
+   does one camera at a time, and doesn't save any results unless asked to do so.
+   It allows you to change parameters on the fly, with spin boxes, without editing
+   text files.
+ 
+ * evolution/evo_cal.py - starts with a relatively broad range of possible 
+   parameters and evolves a global solution which is quite good. Depending on how 
+   much you want to wait, of course.
+
+To check your calibration:
+
+ * ptv/view_calib.py - a graphical tool using TraitsUI [1] and Tracer [2] that
+   gives you a visualization of how good your calibration is by shooting rays from 
+   the camera through detected points (after distortions). You need the rays to
+   converge on the balls that represent known calibration points.
+ 
+ * ui/epi_checker.py - a tool similar to the PyPTV main screen. It shows 4 cameras
+   together and alows you to mark epipolar lines with minimum hassle.
+
+[1] http://docs.enthought.com/traitsui/
+[2] http://yosefm.github.io/tracer/
+
+There are supporting tools for calibration with different methods.
+
+Dumbbell:
+
+ * ptv/dumbbell.py - does detection of dumbbell from initial user marking,
+   just like the old Matlab tool only faster and more configurable.
+
+ * ptv/dumbbell_correct.py - improves an existing calibration using the results of 
+   ptv/dumbbell.py
+
+Multiplane:
+
+ * ptv/gen_multiplane.py - generates configuration files and shifted point files 
+   for a multiplane calibration. Might not be entirely up to date on the config 
+   format, be careful. Note that it generates several auxiliary files, but you
+   have full control over where they end up, so use it and don't clobber your own
+   files.
+
+ * ptv/gen_multi_init.py - Generates an initial guess for multiplane calibration 
+   that is hopefully different than each of the single-plane calibrations.
+
+ * ptv/multiplane.py - does the actual multiplane calibration using outputs of the 
+   other tools.
+
+And also,
+
+ * ptv/shake.py - calibration by the shaking method.
+
+The actual PTV process for a calibrated scene is served by these tools:
+
+ * ptv/sequence.py - what you think. Note the outputs are configurable,
+   so you don't have to clobber your results every time.
+
+ * ptv/track.py - the forward tracking pass. I have not yet bound the backward
+   tracking to Python, but also have never seen it do anything good so why bother.
+
+That's pretty much it. All post-processing you should do with Flowtracks, which is 
+a different package.
