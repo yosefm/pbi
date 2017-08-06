@@ -80,7 +80,7 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         
 if __name__ == "__main__":
     import sys
-    from mixintel.openptv import read_scene_config, count_unused_targets
+    from util.openptv import read_scene_config, count_unused_targets
     
     import argparse
     parser = argparse.ArgumentParser()

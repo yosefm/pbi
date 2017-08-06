@@ -13,8 +13,8 @@ from optv.correspondences import correspondences, MatchedCoords
 from optv.segmentation import target_recognition
 from optv.orientation import point_positions
 
-from mixintel.openptv import simple_highpass
-from mixintel.detection import detect_large_particles, detect_blobs
+from util.openptv import simple_highpass
+from util.detection import detect_large_particles, detect_blobs
 
 class FrameProc(PoolWorker):
     """
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     from multiprocessing import Pipe, Queue
     from Queue import Empty
     
-    from mixintel.openptv import read_scene_config
+    from util.openptv import read_scene_config
     from optv.parameters import VolumeParams
     
     parser = argparse.ArgumentParser()

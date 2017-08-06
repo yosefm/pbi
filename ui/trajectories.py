@@ -201,7 +201,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
 
 if __name__ == "__main__":
     import sys, argparse
-    from mixintel.openptv import read_scene_config
+    from util.openptv import read_scene_config
     
     parser = argparse.ArgumentParser()
     parser.add_argument('data', help="The FHDF file with trajectory data")

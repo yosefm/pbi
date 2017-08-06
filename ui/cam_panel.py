@@ -10,8 +10,8 @@ import numpy as np, matplotlib.pyplot as pl
 
 from optv.calibration import Calibration
 from optv.segmentation import target_recognition
-from mixintel.detection import detect_large_particles, detect_blobs
-from mixintel.openptv import simple_highpass
+from util.detection import detect_large_particles, detect_blobs
+from util.openptv import simple_highpass
 
 def gray2qimage(gray):
     """Convert the 2D numpy array `gray` into a 8-bit QImage with a gray

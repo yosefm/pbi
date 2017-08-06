@@ -15,7 +15,7 @@ from matplotlib import cm
 from optv.imgcoord import image_coordinates
 from optv.transforms import convert_arr_metric_to_pixel
 from optv.segmentation import target_recognition
-from mixintel.evolution import gen_calib, get_pos, mutation, recombination, choose_breeders
+from utill.evolution import gen_calib, get_pos, mutation, recombination, choose_breeders
 
 wrap_it_up = False
 def interrupt(signum, frame):
@@ -106,7 +106,7 @@ def show_current(signum, frame):
 # Main part
 import sys, yaml
 from optv.parameters import ControlParams, TargetParams
-from mixintel.openptv import simple_highpass
+from util.openptv import simple_highpass
 
 yaml_file = sys.argv[1]
 yaml_args = yaml.load(file(yaml_file))
