@@ -10,7 +10,7 @@ Created on Sun Mar 13 11:17:58 2016
 
 if __name__ == "__main__":
     import numpy as np
-    from mixintel.evolution import get_pos, gen_calib
+    from util.evolution import get_pos, gen_calib
     from optv.calibration import Calibration
     
     import argparse

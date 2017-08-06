@@ -11,7 +11,7 @@ Created on Tue May 10 09:41:11 2016
 from __future__ import print_function
 
 import sys, numpy as np
-from mixintel.evolution import gen_calib, get_pos
+from util.evolution import gen_calib, get_pos
 from optv.transforms import convert_arr_pixel_to_metric, correct_arr_brown_affine
 from optv.orientation import point_positions
 from calib import correspondences
@@ -197,8 +197,8 @@ if __name__ == "__main__":
     
     from optv.parameters import VolumeParams, ControlParams, TargetParams
     from optv.segmentation import target_recognition
-    from mixintel.evolution import cauchy_mutation, recombination, choose_breeders
-    from mixintel.openptv import simple_highpass
+    from util.evolution import cauchy_mutation, recombination, choose_breeders
+    from util.openptv import simple_highpass
 
     import signal
     signal.signal(signal.SIGTSTP, show_current)

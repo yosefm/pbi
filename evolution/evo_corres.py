@@ -9,7 +9,7 @@ Created on Thu Mar 10 10:25:17 2016
 """
 
 import numpy as np, matplotlib.pyplot as pl, signal
-from mixintel.evolution import gen_calib, cauchy_mutation, recombination, choose_breeders
+from util.evolution import gen_calib, cauchy_mutation, recombination, choose_breeders
 from calib import count_correspondences
 
 from parallel_runner import PoolWorker
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     
     from optv.parameters import VolumeParams, ControlParams, TargetParams
     from optv.segmentation import target_recognition
-    from mixintel.openptv import simple_highpass
+    from util.openptv import simple_highpass
     
     from multiprocessing import Pipe, Queue, cpu_count
     from Queue import Empty
