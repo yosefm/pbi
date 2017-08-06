@@ -76,6 +76,12 @@ And also,
 
  * ptv/shake.py - calibration by the shaking method.
 
+Oh, and the evolution/ directory has two more evolution scripts that attempt 
+to solve some form of a multi-camera calibration, either by maximizing 
+correspondences or by comparing points in 3D. I have not touched them in a
+very long time and do not trust them to work. But I give the code, should 
+anyone care to look into it in the future.
+
 The actual PTV process for a calibrated scene is served by these tools:
 
  * ptv/sequence.py - what you think. Note the outputs are configurable,
@@ -86,3 +92,4 @@ The actual PTV process for a calibrated scene is served by these tools:
 
 That's pretty much it. All post-processing you should do with Flowtracks, which is 
 a different package.
+
