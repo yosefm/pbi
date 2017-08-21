@@ -1,0 +1,26 @@
+
+There are some examples here, here is how to run them.
+The unstructions refer to running from the source package. No install is 
+needed, but if you did install, just change the necessary stuff to your 
+install places.
+
+The example directory is divided into data/ and config/, all paths in the 
+config files are relative to example/, so you need to change directory to it.
+
+Calibration
+-----------
+
+ $ cd example/
+ $ python ../ui/cam_calib.py config/cal/cam1.yaml
+
+For the evolutionary calibration:
+
+ $ cd example/
+ $ python ../evolution/evo_cal.py config/cal/cam1.yaml
+
+Whenever you hit Ctrl-Z (probably Ctrl-D on windows?) you get the current 
+status graphic, and current best solution printed to terminal.
+
+----------
+Other stuff will come soon (I hope)
+
