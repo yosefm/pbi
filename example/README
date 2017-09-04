@@ -1,6 +1,6 @@
 
 There are some examples here, here is how to run them.
-The unstructions refer to running from the source package. No install is 
+The instructions refer to running from the source package. No install is 
 needed, but if you did install, just change the necessary stuff to your 
 install places.
 
@@ -20,6 +20,15 @@ For the evolutionary calibration:
 
 Whenever you hit Ctrl-Z (probably Ctrl-D on windows?) you get the current 
 status graphic, and current best solution printed to terminal.
+
+Dumbbell marking:
+
+ $ python ptv/dumbbell.py example/data/dumbbell/dumb%d.%04d /tmp/targs_%d. 0200 0281
+
+Note that this tool has options to save and later reuse your clicks. Use the -h
+option to learn more about it. To mark each rectangle, drag and release with 
+the mouse. It doesn't matter if you mark right-left or the other way and the 
+same goes to up-down. The coordinates are sorted after the click anyway.
 
 Detection, correspondence, Epipolar lines
 -----------------------------------------
