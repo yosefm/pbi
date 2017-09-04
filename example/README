@@ -23,12 +23,19 @@ status graphic, and current best solution printed to terminal.
 
 Dumbbell marking:
 
- $ python ptv/dumbbell.py example/data/dumbbell/dumb%d.%04d /tmp/targs_%d. 0200 0281
+ $ python ../ptv/dumbbell.py data/dumbbell/dumb%d.%04d /tmp/targs_%d. 0200 0281
 
 Note that this tool has options to save and later reuse your clicks. Use the -h
 option to learn more about it. To mark each rectangle, drag and release with 
 the mouse. It doesn't matter if you mark right-left or the other way and the 
 same goes to up-down. The coordinates are sorted after the click anyway.
+
+Dumbbell correction to existing calibration:
+
+  $ python ../ptv/dumbbell_correct.py config/dumbbell/dumbbell.yaml
+
+Do this after running the marking as in the above example, or there won't be 
+any target files.
 
 Detection, correspondence, Epipolar lines
 -----------------------------------------

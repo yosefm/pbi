@@ -12,7 +12,7 @@ Created on Tue Dec 15 13:39:40 2015
 # These readers should go in a nice module, but I wait on Max to finish the 
 # proper bindings.
 
-from calib import dumbbell_target_func
+from optv.orientation import dumbbell_target_func
 from optv.parameters import ControlParams
 
 def calib_convergence(calib_vec, targets, calibs, active_cams, cpar,
@@ -125,7 +125,9 @@ if __name__ == "__main__":
     calib_vec = calib_vec.flatten()
     
     # Test optimizer-ready target function:
-    print calib_vec
+    print "Initial values (1 row per camera, pos, then angle):"
+    print calib_vec.reshape(4,-1)
+    print "Current target function (to minimize):",
     print calib_convergence(calib_vec, all_targs, calibs, active, cpar,
         db_length, db_weight)
     
@@ -133,7 +135,11 @@ if __name__ == "__main__":
     res = minimize(calib_convergence, calib_vec, 
                    args=(all_targs, calibs, active, cpar, db_length, db_weight),
                    tol=1, options={'maxiter': 500})
-    print res.x, res.success, res.message
+    
+    print "Result of minimize:"
+    print res.x.reshape(4,-1)
+    print "Success:", res.success, res.message
+    print "Final target function:",
     print calib_convergence(res.x, all_targs, calibs, active, cpar,
         db_length, db_weight)
     
@@ -141,7 +147,7 @@ if __name__ == "__main__":
         x = res.x.reshape(-1,2,3)
         for cam in xrange(len(cal_args)):
             if active[cam]:
-                # MAke sure 'minimize' didn't play around:
+                # Make sure 'minimize' didn't play around:
                 calibs[cam].set_pos(x[0,0])
                 calibs[cam].set_angles(x[0,1])
                 calibs[cam].write(cal_args[cam]['ori_file'], 
