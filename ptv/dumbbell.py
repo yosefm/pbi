@@ -30,7 +30,9 @@ def onselect(eclick, erelease, im, rects, tiles):
     rects.append(np.c_[xs, ys].flatten())
     print rects[-1]
     
-    tiles.append(im[floor(ys[0]):ceil(ys[1]), floor(xs[0]):ceil(xs[1])].copy())
+    ybounds = map(int, [floor(ys[0]), ceil(ys[1])])
+    xbounds = map(int, [floor(xs[0]), ceil(xs[1])])
+    tiles.append(im[ybounds[0]:ybounds[1], xbounds[0]:xbounds[1]].copy())
     if len(rects) == 2:
         pl.close()
 
@@ -82,7 +84,8 @@ def template_match(image, template, rect=None, margin_factor=1.5):
         search_center = 0.5*xys.sum(axis=0)
         cent_rect = np.array(template.shape)[::-1]/2 * np.c_[[-1, 1]]
         
-        sr = np.clip(margin_factor * cent_rect + search_center, [0, 0], lim)
+        sr = np.int_(
+            np.clip(margin_factor * cent_rect + search_center, [0, 0], lim))
         clipped_center = 0.5*sr.sum(axis=0)
         image = image[sr[0,1]:sr[1,1], sr[0,0]:sr[1,0]]
     
@@ -245,16 +248,19 @@ if __name__ == "__main__":
             r, t = mark_image(args.tmpl % (cam + 1, args.first))
         else:
             r = premarks[2*cam:2*(cam + 1)]
-            r = [r[0], r[1]]
+            r[:,:2] = np.floor(r[:,:2])
+            r[:,2:] = np.floor(r[:,2:])
+            r= np.int_(r)
             
             image = pl.imread(args.tmpl % (cam + 1, args.first))
             t = [
-                image[r[0][1]:r[0][3], r[0][0]:r[0][2]],
-                image[r[1][1]:r[1][3], r[1][0]:r[1][2]],
+                image[r[0,1]:r[0,3], r[0,0]:r[0,2]],
+                image[r[1,1]:r[1,3], r[1,0]:r[1,2]],
             ]
         
         templates.append(t)
-        rects.append(r)
+        # `rects` is a list of lists.
+        rects.append([r[0], r[1]])
     
     if args.cache_file is not None:
         np.savetxt(args.cache_file, np.array(rects).reshape(-1,4))

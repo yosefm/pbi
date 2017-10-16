@@ -15,7 +15,7 @@ from matplotlib import cm
 from optv.imgcoord import image_coordinates
 from optv.transforms import convert_arr_metric_to_pixel
 from optv.segmentation import target_recognition
-from utill.evolution import gen_calib, get_pos, mutation, recombination, choose_breeders
+from util.evolution import gen_calib, get_pos, mutation, recombination, choose_breeders
 
 wrap_it_up = False
 def interrupt(signum, frame):

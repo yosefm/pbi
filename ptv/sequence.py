@@ -86,7 +86,7 @@ class FrameProc(PoolWorker):
         
         # Distinction between quad/trip irrelevant here.
         sets = np.concatenate(sets, axis=1)
-        corresp = np.concatenate(corresp, axis=1).T
+        corresp = np.concatenate(corresp, axis=1)
         
         flat = np.array([corrected[cix].get_by_pnrs(corresp[cix]) \
             for cix in xrange(len(self._cals))])
@@ -97,7 +97,7 @@ class FrameProc(PoolWorker):
         rt_is = open(seq['output_template'].format(frame=frame), 'w')
         rt_is.write(str(pos.shape[0]) + '\n')
         for pix, pt in enumerate(pos):
-            pt_args = (pix + 1,) + tuple(pt) + tuple(corresp[pix])
+            pt_args = (pix + 1,) + tuple(pt) + tuple(corresp[:,pix])
             rt_is.write("%4d %9.3f %9.3f %9.3f %4d %4d %4d %4d\n" % pt_args)
         rt_is.close()
             
