@@ -7,7 +7,7 @@ Created on Wed Jun  1 10:35:25 2016
 @author: yosef
 """
 import numpy as np, matplotlib.pyplot as pl
-from parallel_runner import PoolWorker
+from util.parallel_runner import PoolWorker
 
 from optv.correspondences import correspondences, MatchedCoords
 from optv.segmentation import target_recognition
@@ -105,7 +105,8 @@ class FrameProc(PoolWorker):
             
 if __name__ == "__main__":
     import argparse, time
-    from multiprocessing import Pipe, Queue
+    from multiprocessing import Pipe
+    from util.methods import Queue
     from Queue import Empty
     
     from util.openptv import read_scene_config

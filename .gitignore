@@ -2,3 +2,5 @@
 build
 dist
 pbi.egg-info
+example/data/seqtrack_res
+example/data/seqtrack_targs
