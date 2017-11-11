@@ -1,0 +1,20 @@
+
+A Parallel-Runner process
+-------------------------
+
+The parallel_runner.py module supplies two classes:
+
+1. the PoolWorker is a worker process that can receive commands like 'end',
+   'wait', 'resume', and respond to them between jobs. The command are sent
+    over a multiprocessing.Pipe object.
+
+2. CLIController is a primitive shell that terminates when the workers end,
+   and in the meantime collects results and can send commands to the
+   PoolWorker.
+
+Licence
+-------
+Licensed under GNU-GPL v3.0
+If you need something else, contact me and we'll see what we can work out:
+mellerf@netvision.net.il
+
