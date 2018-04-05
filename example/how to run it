@@ -1,0 +1,71 @@
+
+There are some examples here, here is how to run them.
+The instructions refer to running from the source package. No install is 
+needed, but if you did install, just change the necessary stuff to your 
+install places.
+
+The example directory is divided into data/ and config/, all paths in the 
+config files are relative to example/, so you need to change directory to it.
+
+Calibration
+-----------
+
+ $ cd example/
+ $ python ../ui/cam_calib.py config/cal/cam1.yaml
+
+For the evolutionary calibration:
+
+ $ cd example/
+ $ python ../evolution/evo_cal.py config/cal/cam1.yaml
+
+Whenever you hit Ctrl-Z (probably Ctrl-D on windows?) you get the current 
+status graphic, and current best solution printed to terminal.
+
+Dumbbell marking:
+
+ $ python ../ptv/dumbbell.py data/dumbbell/dumb%d.%04d /tmp/targs_%d. 0200 0281
+
+Note that this tool has options to save and later reuse your clicks. Use the -h
+option to learn more about it. To mark each rectangle, drag and release with 
+the mouse. It doesn't matter if you mark right-left or the other way and the 
+same goes to up-down. The coordinates are sorted after the click anyway.
+
+Dumbbell correction to existing calibration:
+
+  $ python ../ptv/dumbbell_correct.py config/dumbbell/dumbbell.yaml
+
+Do this after running the marking as in the above example, or there won't be 
+any target files.
+
+Detection, correspondence, Epipolar lines
+-----------------------------------------
+
+ $ cd example/
+ $ python ../ui/epi_checker.py config/cal/calib_check.yaml
+ #$ python ../ui/epi_checker.py config/cal/calib_check.py   ###  THIS IS WRONG!!!!!!!!!!!!!!!!!!!! BY SI CHEN AND IT SHOULD BE LIKE ABOVE:
+
+
+Just because this example is in with the calibration doesn't limit you to use
+it for other sets of images, like particle images from the experiment. But you
+knew that, right?
+
+Sequencing/Tracking
+-------------------
+
+Both of these use one file, config/seq_track.yaml
+You have to prepare the directories that you list for output. In this example, you run:
+
+ $ md seqtrack_res                 # mkdir seqtrack_res   these two folders should be created under pbi/example/data/   directory. 
+ $ md seqtrack_targs               # mkdir seqtrack_targs
+
+Then the sequencing is simple. This example uses large-particle detection by DoG.
+Flags you don't understand, check with -h as always.
+ 
+ $ python ../ptv/sequence.py config/seq_track.yaml -r -m dog
+ $ python ../ptv/track.py config/seq_track.yaml 
+
+That's it. Now you have your linkage.* files in seqtrack_res/
+
+Note though that we use the example calibration and didn't try hard to make 
+this data good, so the results may be a bit underwhelming.
+
