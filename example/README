@@ -41,7 +41,7 @@ Detection, correspondence, Epipolar lines
 -----------------------------------------
 
  $ cd example/
- $ python ../ui/epi_checker.py config/cal/calib_check.yaml
+ $ python ../ui/epi_checker.py config/cal/calib_check.yaml               # not calib_check.py
 
 Just because this example is in with the calibration doesn't limit you to use
 it for other sets of images, like particle images from the experiment. But you
