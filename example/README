@@ -41,7 +41,7 @@ Detection, correspondence, Epipolar lines
 -----------------------------------------
 
  $ cd example/
- $ python ../ui/epi_checker.py config/cal/calib_check.py
+ $ python ../ui/epi_checker.py config/cal/calib_check.yaml
 
 Just because this example is in with the calibration doesn't limit you to use
 it for other sets of images, like particle images from the experiment. But you
@@ -53,13 +53,13 @@ Sequencing/Tracking
 Both of these use one file, config/seq_track.yaml
 You have to prepare the directories that you list for output. In this example, you run:
 
- $ md seqtrack_res
+ $ md seqtrack_res             # mkdir seqtrack_res   these two folders should be created under pbi/example/data/   directory. 
  $ md seqtrack_targs
 
 Then the sequencing is simple. This example uses large-particle detection by DoG.
 Flags you don't understand, check with -h as always.
  
- $ python ../ptv/sequence.py config/seq_track.yaml -r -m dog
+ $ python ../ptv/sequence.py config/seq_track.yaml -r -m dog  # have to install https://github.com/yosefm/parallel_runner beforehand under pbi/ptv
  $ python ../ptv/track.py config/seq_track.yaml 
 
 That's it. Now you have your linkage.* files in seqtrack_res/
