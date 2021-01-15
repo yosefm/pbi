@@ -85,7 +85,10 @@ anyone care to look into it in the future.
 The actual PTV process for a calibrated scene is served by these tools:
 
  * ptv/sequence.py - what you think. Note the outputs are configurable,
-   so you don't have to clobber your results every time.
+   so you don't have to clobber your results every time. Depends on an 
+   external parallel processing package [3]
+
+[3] https://github.com/yosefm/parallel_runner
 
  * ptv/track.py - the forward tracking pass. I have not yet bound the backward
    tracking to Python, but also have never seen it do anything good so why bother.

@@ -160,7 +160,7 @@ if __name__ == "__main__":
         except Empty:
             pass
     
-    while got_res < seq['last'] - seq['first']:
+    while got_res < seq['last'] - seq['first'] + 1:
         try:
             res = results.get_nowait()
             got_res += 1

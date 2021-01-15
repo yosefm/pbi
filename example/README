@@ -53,8 +53,8 @@ Sequencing/Tracking
 Both of these use one file, config/seq_track.yaml
 You have to prepare the directories that you list for output. In this example, you run:
 
- $ md seqtrack_res
- $ md seqtrack_targs
+ $ mkdir seqtrack_res
+ $ mkdir seqtrack_targs
 
 Then the sequencing is simple. This example uses large-particle detection by DoG.
 Flags you don't understand, check with -h as always.
