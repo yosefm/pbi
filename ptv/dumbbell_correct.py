@@ -70,7 +70,7 @@ if __name__ == "__main__":
     parser.add_argument('--clobber', action='store_true', default=False,
         help="Replace original ori files with result.")
     cli_args = parser.parse_args()
-    yaml_args = yaml.load(file(cli_args.config))
+    yaml_args = yaml.load(open(cli_args.config,'r'),yaml.CLoader)
     
     # Generate initial-guess calibration objects. These get overwritten by
     # the optimizer's target function.
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     
     for cam_data in cal_args:
         cl = Calibration()
-        cl.from_file(cam_data['ori_file'], cam_data['addpar_file'])
+        cl.from_file(cam_data['ori_file'].encode(), cam_data['addpar_file'].encode())
         
         calibs.append(cl)
         active.append(cam_data['free'])

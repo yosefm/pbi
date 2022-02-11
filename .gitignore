@@ -5,3 +5,4 @@ pbi.egg-info
 example/data/seqtrack_res
 example/data/seqtrack_targs
 *.bak
+example/tmp/*

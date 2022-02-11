@@ -41,7 +41,7 @@ def mark_image(image_path):
     tiles = []
 
     pl.figure()
-    ax = pl.subplot('111')
+    ax = pl.subplot(1,1,1)
 
     im = pl.imread(image_path)
     ax.imshow(im, cmap=cm.gray)
@@ -152,7 +152,7 @@ def process_image(image_path, templates, targets_path, targets_frame,
         rects[1] if rects is not None else None)
     record_target(targs[1], 1, templates[1], pos)
     
-    targs.write(targets_path, targets_frame)
+    targs.write(targets_path.encode(), targets_frame)
 
 def process_frame(image_tmpl, templates, targets_tmpl, frame_num, cam_count,
     rects=None):
@@ -194,8 +194,8 @@ def show_frame(image_tmpl, targets_tmpl, frame_num, cam_count):
     cam_count - number of cameras in scene.
     """
     pl.figure(figsize=(15,15))
-    vert_plots = floor(sqrt(cam_count))
-    horz_plots = cam_count/vert_plots
+    vert_plots = int(floor(sqrt(cam_count)))
+    horz_plots = int(cam_count/vert_plots)
     
     for cam in range(cam_count):
         pl.subplot(vert_plots, horz_plots, cam + 1)
