@@ -9,7 +9,7 @@ Created on Tue Aug  4 10:23:01 2015
 """
 
 from PyQt4 import QtCore, QtGui
-from calib_pars_base import Ui_calibPars
+from .calib_pars_base import Ui_calibPars
 
 import numpy as np
 from optv.calibration import Calibration
@@ -146,10 +146,10 @@ if __name__ == "__main__":
     cal.read_calibration(sys.argv[1], sys.argv[2])
     
     def print_pos():
-        print cal.get_pos()
+        print((cal.get_pos()))
     
     def print_angs():
-        print cal.get_angles()
+        print((cal.get_angles()))
     
     app = QtGui.QApplication([])
     window = CalibParameters()

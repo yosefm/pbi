@@ -68,7 +68,7 @@ if __name__ == "__main__":
     all_detected = np.vstack(all_detected)
     
     targs = TargetArray(len(all_detected))
-    for tix in xrange(len(all_detected)):
+    for tix in range(len(all_detected)):
         targ = targs[tix]
         det = all_detected[tix]
         

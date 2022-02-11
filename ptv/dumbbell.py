@@ -28,10 +28,10 @@ def onselect(eclick, erelease, im, rects, tiles):
     xs = np.sort(np.r_[eclick.xdata, erelease.xdata])
     ys = np.sort(np.r_[eclick.ydata, erelease.ydata])
     rects.append(np.c_[xs, ys].flatten())
-    print rects[-1]
+    print((rects[-1]))
     
-    ybounds = map(int, [floor(ys[0]), ceil(ys[1])])
-    xbounds = map(int, [floor(xs[0]), ceil(xs[1])])
+    ybounds = list(map(int, [floor(ys[0]), ceil(ys[1])]))
+    xbounds = list(map(int, [floor(xs[0]), ceil(xs[1])]))
     tiles.append(im[ybounds[0]:ybounds[1], xbounds[0]:xbounds[1]].copy())
     if len(rects) == 2:
         pl.close()
@@ -173,7 +173,7 @@ def process_frame(image_tmpl, templates, targets_tmpl, frame_num, cam_count,
         arrays each 2x2, [[left, top], [right, bottom]]. If None (default), 
         matches whole image.
     """
-    for cam in xrange(cam_count):
+    for cam in range(cam_count):
         tpath = targets_tmpl % (cam + 1)
         ipath = image_tmpl % (cam + 1, frame_num)
         process_image(ipath, templates[cam], tpath, frame_num,
@@ -197,7 +197,7 @@ def show_frame(image_tmpl, targets_tmpl, frame_num, cam_count):
     vert_plots = floor(sqrt(cam_count))
     horz_plots = cam_count/vert_plots
     
-    for cam in xrange(cam_count):
+    for cam in range(cam_count):
         pl.subplot(vert_plots, horz_plots, cam + 1)
         im = pl.imread(image_tmpl % (cam + 1, frame_num))
         pl.imshow(im, cmap=cm.gray)
@@ -243,7 +243,7 @@ if __name__ == "__main__":
     if args.positions is not None:
         premarks = np.loadtxt(args.positions)
         
-    for cam in xrange(args.cams):
+    for cam in range(args.cams):
         if args.positions is None:
             r, t = mark_image(args.tmpl % (cam + 1, args.first))
         else:
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     # Start one thread per frame. Keep a maximum of live threads and add one
     # new job each time a job is finished.
     active = []
-    for frame in xrange(args.first, args.last + 1):
+    for frame in range(args.first, args.last + 1):
         arglist = (args.tmpl, templates, args.targ_tmpl, frame, args.cams)
         if not args.full:
             arglist = arglist + (rects,)

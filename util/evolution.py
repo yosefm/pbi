@@ -60,7 +60,7 @@ def choose_breeders(fits, minimize=True):
     
     ranked_fit = np.add.accumulate(fits_normed)
     if not ranked_fit.any():
-        print ranked_fit
+        print(ranked_fit)
         return None
 
     breeding_dice = rnd.rand(2) * ranked_fit[-1]
@@ -98,7 +98,7 @@ def cauchy_mutation(solution, bounds, chance, stds_in_range=5):
     
 def mutation(solution, bounds, chance):
     genes = rnd.rand(len(solution)) < chance
-    for gix in xrange(len(solution)):
+    for gix in range(len(solution)):
         if genes[gix]:
             minb, maxb = bounds[gix]
             solution[gix] = rnd.rand()*(maxb - minb) + minb

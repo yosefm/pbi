@@ -8,7 +8,7 @@ Created on Mon Jul 20 09:46:14 2015
 import numpy as np
 
 from PyQt4 import QtGui
-from cam_calib_base import Ui_CameraCalibration
+from .cam_calib_base import Ui_CameraCalibration
 
 from optv.calibration import Calibration
 from optv.parameters import ControlParams, TargetParams
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         cal_args['manual_detection_file'], cal_args['known_points'],
         cal_args['manual_detection_points'], yaml_args['detection'],
         yaml_args['default_free_vars'])
-    if cal_args.has_key('detection_method'):
+    if 'detection_method' in cal_args:
         conf_args = conf_args + (cal_args['detection_method'], )
         
     window = SingleCameraCalibration(*conf_args)

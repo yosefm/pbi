@@ -37,8 +37,8 @@ class PoolWorker(Process):
             if self._out_q is not None:
                 self._out_q.put(res)
                 del res # Allow returning huge results.
-        print self.pid, "returning"
-        print "***************************"
+        print((self.pid, "returning"))
+        print("***************************")
                      
     def pre_run(self):
         """Override to do something before the jobs-loop starts"""
@@ -62,7 +62,7 @@ if not on_windows:
 	import select
 	import tty
 	import termios
-	import Queue as queue # To avoid confusion with multiprocessing.Queue
+	import queue as queue # To avoid confusion with multiprocessing.Queue
 
 	class CLIController(cmd.Cmd):
 		sleep_time = 0.1

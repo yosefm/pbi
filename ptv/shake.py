@@ -52,13 +52,13 @@ if __name__ == "__main__":
     cpar = ControlParams(**scene_args)
     
     targ_files = [yaml_args['target_template'] % c for c in \
-        xrange(1, num_cams + 1)]
+        range(1, num_cams + 1)]
 
     # Iterate over frames, loading the big lists of 3D positions and 
     # respective detections.
     all_known = []
-    all_detected = [[] for c in xrange(cpar.get_num_cams())]
-    for frm_num in xrange(yaml_args['first'], yaml_args['last'] + 1, 
+    all_detected = [[] for c in range(cpar.get_num_cams())]
+    for frm_num in range(yaml_args['first'], yaml_args['last'] + 1, 
                           yaml_args['skip']):
         frame = Frame(cpar.get_num_cams(), 
             corres_file_base=yaml_args['corres_file_base'], 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
         
         targs = TargetArray(len(used_detects))
         
-        for tix in xrange(len(used_detects)):
+        for tix in range(len(used_detects)):
             targ = targs[tix]
             targ.set_pnr(tix)
             targ.set_pos(used_detects[tix])
@@ -91,9 +91,9 @@ if __name__ == "__main__":
         residuals, _ = full_calibration(calibs[cam], used_known, targs, cpar)
         
         if args.dry_run:
-            print "Camera %d" % (cam + 1)
-            print calibs[cam].get_pos()
-            print calibs[cam].get_angles()
+            print(("Camera %d" % (cam + 1)))
+            print((calibs[cam].get_pos()))
+            print((calibs[cam].get_angles()))
         else:
             if args.output is None:
                 ori = cal_args[cam]['ori_file']

@@ -81,15 +81,15 @@ def show_current(signum, frame):
     rad = init_sols[best_fit][9:12]
     decent = init_sols[best_fit][12:14]
 
-    print
-    print fits[best_fit]
-    print "pos/ang:"
-    print "%.8f %.8f %.8f" % tuple(pos)
-    print "%.8f %.8f %.8f" % tuple(angs)
-    print
-    print "internal: %.8f %.8f %.8f" % tuple(prim)
-    print "radial distortion: %.8f %.8f %.8f" % tuple(rad)
-    print "decentering: %.8f %.8f" % tuple(decent)
+    print()
+    print((fits[best_fit]))
+    print("pos/ang:")
+    print(("%.8f %.8f %.8f" % tuple(pos)))
+    print(("%.8f %.8f %.8f" % tuple(angs)))
+    print()
+    print(("internal: %.8f %.8f %.8f" % tuple(prim)))
+    print(("radial distortion: %.8f %.8f %.8f" % tuple(rad)))
+    print(("decentering: %.8f %.8f" % tuple(decent)))
     
     cal = gen_calib(inters, R, angs, glass_vec, prim, rad, decent)
     known_proj = image_coordinates(cal_points, cal, 
@@ -171,13 +171,13 @@ ranges = np.r_[[(maxb - minb) for minb, maxb in bounds]]
 
 init_sols = np.array([
     np.r_[[rnd.rand()*(maxb - minb) + minb for minb, maxb in bounds]
-    ] for s in xrange(pop_size)])
+    ] for s in range(pop_size)])
 
 fits = []
 for sol in init_sols:
     fits.append( fitness(sol, cal_points, targs, glass_vec, cpar) )
 fits = np.array(fits)
-print fits
+print(fits)
 
 signal.signal(signal.SIGTSTP, show_current)
 
@@ -185,13 +185,13 @@ mutation_chance = 0.05
 niche_size = len(bounds) / 2.
 niche_penalty = 2.
 num_iters = 2000000
-for it in xrange(num_iters):
+for it in range(num_iters):
     if it % 100 == 0:
         niche_size *= 0.995
         niche_penalty = niche_penalty**0.999
     if it % 500 == 0:
-        print fits.min(), fits.max()
-        print niche_size, niche_penalty
+        print((fits.min(), fits.max()))
+        print((niche_size, niche_penalty))
     
     # Check if Ctrl-C event happened during previous iteration:
     if wrap_it_up:

@@ -65,7 +65,7 @@ if __name__ == "__main__":
     for plane, shift in zip(args.planes, plane_shifts):
         # Single-plane, single camera calibration tool configuration,
         # needed for generating the fix/crd point files.
-        for camn in xrange(args.num_cams):
+        for camn in range(args.num_cams):
             cam = camn + 1
             fname = os.path.join(args.output, "%s%d.yaml" % (plane, cam))
         
@@ -101,7 +101,7 @@ if __name__ == "__main__":
                 continue
         
         epi_yaml = []
-        for camn in xrange(args.num_cams):
+        for camn in range(args.num_cams):
             epi_yaml.append(
                 multi_yaml.format(path=args.output, plane=plane, cam=camn + 1))
         

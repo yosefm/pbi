@@ -48,7 +48,7 @@ class Ui_Scene(object):
     def retranslateUi(self, Scene):
         Scene.setWindowTitle(_translate("Scene", "Form", None))
 
-from epi_panel import CamPanelEpi
+from .epi_panel import CamPanelEpi
 
 if __name__ == "__main__":
     import sys

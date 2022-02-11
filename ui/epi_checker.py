@@ -10,8 +10,8 @@ import numpy as np
 
 from PyQt4 import QtCore, QtGui
 from optv.calibration import Calibration
-from scene_window_base import Ui_Scene
-from epi_panel import CamPanelEpi
+from .scene_window_base import Ui_Scene
+from .epi_panel import CamPanelEpi
 
 class SceneWindow(QtGui.QWidget, Ui_Scene):
     """
@@ -36,7 +36,7 @@ class SceneWindow(QtGui.QWidget, Ui_Scene):
         det_pars - passed on directly to base.
         """
         cam_panels = self.findChildren(CamPanelEpi)
-        cam_nums = range(len(cam_panels))
+        cam_nums = list(range(len(cam_panels)))
         cpar.setdefault('cams', len(cam_nums))
         
         large = False
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         
         sets, pnrs, _ = correspondences(
             targs, corrected, cals, cam._vpar, cam._cpar)
-        print "Unused: %d" % count_unused_targets(targs)
+        print(("Unused: %d" % count_unused_targets(targs)))
         
         names = ['quads', 'triplets', 'pairs']
         colors = ['red', 'green', 'orange']
@@ -155,5 +155,5 @@ if __name__ == "__main__":
             
             flat = np.array(flat)
             #print point_positions(flat.transpose(1,0,2), cam._cpar, cals)[0]
-        print [s.shape[1] for s in sets]
+        print([s.shape[1] for s in sets])
     sys.exit(app.exec_())

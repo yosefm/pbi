@@ -9,7 +9,7 @@ Derives from the CamPanel used for calibration.
 import numpy as np
 
 from PyQt4 import QtCore, QtGui
-from cam_panel import CameraPanel
+from .cam_panel import CameraPanel
 from optv.calibration import Calibration
 from optv.parameters import VolumeParams, ControlParams
 from optv.epipolar import epipolar_curve
@@ -119,7 +119,7 @@ class CamPanelEpi(CameraPanel):
         
         pen = QtGui.QPen(QtGui.QColor(self._epi_colours[cam_id]))
         rad = 3
-        for pt in xrange(len(pts) - 1):
+        for pt in range(len(pts) - 1):
             self._scene.addEllipse(pts[pt,0] - rad, pts[pt,1] - rad, 
                 2*rad, 2*rad, pen=pen)
             self._scene.addLine(

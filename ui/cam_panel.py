@@ -58,12 +58,12 @@ class PatchSet(object):
         """
         self._patches.append(patch)
         
-        for prop in self._props.keys():
+        for prop in list(self._props.keys()):
             if prop not in props:
                 raise ValueError(
                     "Required property %s not given for patch." % prop)
         
-        for prop, val in props.iteritems():
+        for prop, val in list(props.items()):
             if prop not in self._props:
                 raise ValueError("Unrecognized property %s for patch." % prop)
             self._props[prop].append(val)
@@ -74,7 +74,7 @@ class PatchSet(object):
         the scene could remove it.
         """
         ret = self._patches.pop()
-        for prop in self._props.itervalues():
+        for prop in list(self._props.values()):
             prop.pop()
         return ret
     
@@ -106,7 +106,7 @@ class CameraPanel(QtGui.QGraphicsView):
     
     def clear_patchset(self, name):
         pset = self._patch_sets[name]
-        for pnum in xrange(len(pset)):
+        for pnum in range(len(pset)):
             patch = pset.pop()
             if isinstance(patch, QtGui.QGraphicsItem):
                 patch = [patch]
@@ -114,7 +114,7 @@ class CameraPanel(QtGui.QGraphicsView):
                 self._scene.removeItem(subpatch)
     
     def clear_patches(self):
-        for pset in self._patch_sets.iterkeys():
+        for pset in list(self._patch_sets.keys()):
             self.clear_patchset(pset)
     
     def reset(self, control, cam_num, cal=None,

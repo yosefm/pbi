@@ -8,7 +8,7 @@ Created on Tue May 10 09:41:11 2016
 
 @author: yosef
 """
-from __future__ import print_function
+
 
 import sys, numpy as np
 from util.evolution import gen_calib, get_pos
@@ -53,7 +53,7 @@ def fitness(solution, detections, glass_vecs, known_points, vpar, cpar,
     
     # Transform solution vector to calibration objects:
     cals = []
-    for cam in xrange(num_cams):
+    for cam in range(num_cams):
         # Breakdown of of agregate solution vector:
         inters = np.zeros(3)
         inters[:2] = solution[cam, :2]
@@ -127,7 +127,7 @@ def show_current(signum, frame):
     
     # Transform solution vector to calibration objects:
     cals = []
-    for cam in xrange(num_cams):
+    for cam in range(num_cams):
         # Breakdown of of agregate solution vector:
         inters = np.zeros(3)
         inters[:2] = solution[cam, :2]
@@ -245,7 +245,7 @@ if __name__ == "__main__":
 
     init_sols = np.array([
         np.r_[[rnd.rand()*(maxb - minb) + minb for minb, maxb in bounds]
-        ] for s in xrange(pop_size)])
+        ] for s in range(pop_size)])
     
     fits = []
     for sol in init_sols:
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     
     mutation_chance = 0.01
     num_iters = 2000000
-    for it in xrange(num_iters):
+    for it in range(num_iters):
         if it % 500 == 0:
             sys.stderr.write("min %g, max %g\n" % (fits.min(), fits.max()))
             

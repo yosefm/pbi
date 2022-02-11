@@ -131,4 +131,4 @@ class Ui_TrajectoriesSelector(object):
         self.label_3.setText(_translate("TrajectoriesSelector", "to", None))
         self.btn_export.setText(_translate("TrajectoriesSelector", "Export", None))
 
-from cam_panel import CameraPanel
+from .cam_panel import CameraPanel
