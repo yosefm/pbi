@@ -99,7 +99,7 @@ if __name__ == "__main__":
     
     for cam in range(len(cal_args)):
         for frame in range(num_frames):
-            targ_file = yaml_args['template'] % (cam + 1)
+            targ_file = yaml_args['template'] % (cam)
             targs = read_targets(targ_file, yaml_args['first'] + frame)
             
             for tix, targ in enumerate(targs):
