@@ -1,0 +1,1 @@
+(pbi) PS C:\Users\alex\repos\pbi> python ./ptv/dumbbell.py ./ed/img/cam%d.%04d ./ed/tmp/targs_%d. 1001 1100

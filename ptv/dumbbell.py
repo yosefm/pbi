@@ -49,7 +49,7 @@ def mark_image(image_path):
     
     sel_style = {'edgecolor': 'red', 'fill': False}
     rs = RectangleSelector(ax, lambda clk, rls: onselect(clk, rls, im, rects, tiles), 
-        rectprops=sel_style)
+        props=sel_style)
     rs.set_active(True)
 
     pl.show()
@@ -174,8 +174,8 @@ def process_frame(image_tmpl, templates, targets_tmpl, frame_num, cam_count,
         matches whole image.
     """
     for cam in range(cam_count):
-        tpath = targets_tmpl % (cam + 1)
-        ipath = image_tmpl % (cam + 1, frame_num)
+        tpath = targets_tmpl % (cam)
+        ipath = image_tmpl % (cam, frame_num)
         process_image(ipath, templates[cam], tpath, frame_num,
             rects[cam] if rects is not None else None)
 
@@ -199,10 +199,10 @@ def show_frame(image_tmpl, targets_tmpl, frame_num, cam_count):
     
     for cam in range(cam_count):
         pl.subplot(vert_plots, horz_plots, cam + 1)
-        im = pl.imread(image_tmpl % (cam + 1, frame_num))
+        im = pl.imread(image_tmpl % (cam, frame_num))
         pl.imshow(im, cmap=cm.gray)
         
-        targs = read_targets(targets_tmpl % (cam + 1), frame_num)
+        targs = read_targets(targets_tmpl % (cam), frame_num)
         pl.plot(targs[0].pos()[0], targs[0].pos()[1], 'ro')
         pl.plot(targs[1].pos()[0], targs[1].pos()[1], 'ro')
     
@@ -245,14 +245,15 @@ if __name__ == "__main__":
         
     for cam in range(args.cams):
         if args.positions is None:
-            r, t = mark_image(args.tmpl % (cam + 1, args.first))
+            r, t = mark_image(args.tmpl % (cam, args.first))
+            # r, t = mark_image(args.tmpl % (cam, args.first))
         else:
-            r = premarks[2*cam:2*(cam + 1)]
+            r = premarks[2*cam:2*(cam)]
             r[:,:2] = np.floor(r[:,:2])
             r[:,2:] = np.floor(r[:,2:])
             r= np.int_(r)
             
-            image = pl.imread(args.tmpl % (cam + 1, args.first))
+            image = pl.imread(args.tmpl % (cam, args.first))
             t = [
                 image[r[0,1]:r[0,3], r[0,0]:r[0,2]],
                 image[r[1,1]:r[1,3], r[1,0]:r[1,2]],
