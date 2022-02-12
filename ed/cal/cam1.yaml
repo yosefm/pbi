@@ -1,7 +1,7 @@
 
 target:
     image: ed/cal/cam1.tif 
-    number: 0
+    number: 1
     ori_file: ed/cal/cam1.tif.ori
     addpar_file: ed/cal/cam1.tif.addpar
     known_points: ed/cal/small_target_cam1.txt

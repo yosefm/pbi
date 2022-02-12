@@ -1,13 +1,13 @@
 
 target:
     image: ed/cal/cam2.tif 
-    number: 0
+    number: 2
     ori_file: ed/cal/cam2.tif.ori
     addpar_file: ed/cal/cam2.tif.addpar
     known_points: ed/cal/small_target_cam2.txt
     manual_detection_points: [ 1, 5, 36, 40 ]
     manual_detection_file: ed/cal/cam2_man_ori.dat
-    glass_vec: [ -50.,    0.,     0. ]
+    glass_vec: [ -50., 0., 0. ]
 
 scene:
     flags: hp, headers
