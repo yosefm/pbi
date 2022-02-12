@@ -243,8 +243,20 @@ class CameraPanel(QtWidgets.QGraphicsView):
         """
         Implements zooming/unzooming.
         """
-        self._zoom += event.angleDelta().y()/2880
-        self.scale(self._zoom, self._zoom)
+        # delta = event.angleDelta().y()/2880
+        # self._zoom += (delta and delta // abs(delta))
+        # self.scale(self._zoom, self._zoom)
+
+        factor = 1.1
+        delta = event.angleDelta().y()/2880
+        if delta < 0:
+            factor = 0.9
+        view_pos = event.pos()
+        scene_pos = self.mapToScene(view_pos)
+        self.centerOn(scene_pos)
+        self.scale(factor, factor)
+        delta = self.mapToScene(view_pos) - self.mapToScene(self.viewport().rect().center())
+        self.centerOn(scene_pos - delta)        
 
         # numDegrees = event.angleDelta().y() / 8
         # numSteps = numDegrees / 15
