@@ -9,3 +9,4 @@ example/tmp/*
 ed/img/*
 *.bck
 ed/tmp/*
+tracer/*
