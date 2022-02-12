@@ -127,7 +127,7 @@ if __name__ == "__main__":
         help="Path to calibration parameters of this camera (yaml)")
     args = parser.parse_args()
     
-    yaml_args = yaml.load(file(args.calib_par_file))
+    yaml_args = yaml.load(open(args.calib_par_file,'r'), yaml.CLoader)
     cal_args = yaml_args['target']
     scene_args = yaml_args['scene']
     

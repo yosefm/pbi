@@ -21,6 +21,7 @@ Installation
 
 
       pip install . --index-url https://pypi.fury.io/pyptv --extra-index-url https://pypi.org/simple
+      pip install git+https://github.com/yosefm/tracer.git
 
 
 There is always some documentation 

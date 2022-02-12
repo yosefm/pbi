@@ -10,7 +10,7 @@ Created on Sun Jan 31 14:06:13 2016
 """
 import yaml
 import numpy as np
-from scipy.misc import imread
+from imageio import imread
 
 from optv.parameters import ControlParams, TargetParams
 from optv.calibration import Calibration
@@ -73,7 +73,7 @@ def read_scene_config(fname):
         object under the 'calib' key.
     cpar - a ControlParameters object from the YANL 'scene' part.
     """
-    yaml_args = yaml.load(file(fname))
+    yaml_args = yaml.load(open(fname,'r'),yaml.CLoader)
     cam_args = yaml_args['cameras']
     
     yaml_args['scene']['cams'] = len(cam_args)

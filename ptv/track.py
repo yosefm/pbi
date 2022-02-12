@@ -22,7 +22,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     with open(args.config) as f:
-        yaml_conf = yaml.load(f)
+        yaml_conf = yaml.load(f, yaml.CLoader)
     seq_cfg = yaml_conf['sequence']
     
     cals = []

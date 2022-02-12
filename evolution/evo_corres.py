@@ -119,7 +119,7 @@ if __name__ == "__main__":
         help="Number of parallel processes.")
     args = parser.parse_args()
     
-    yaml_args = yaml.load(file(args.config))
+    yaml_args = yaml.load(open(args.config,'r'),yaml.CLoader)
     
     control_args = yaml_args['scene']
     cam_args = yaml_args['cameras']

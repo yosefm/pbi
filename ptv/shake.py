@@ -29,7 +29,7 @@ if __name__ == "__main__":
         "default is to overwrite initial guess. Filename extension is added.")
     args = parser.parse_args()
     
-    yaml_args = yaml.load(file(args.config))
+    yaml_args = yaml.load(open(args.config,'r'), yaml.CLoader)
     yaml_args.setdefault('skip', 1)
     
     # Generate initial-guess calibration objects. These get overwritten by

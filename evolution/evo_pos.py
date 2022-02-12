@@ -208,7 +208,7 @@ if __name__ == "__main__":
         help="A YAML file with calibration and image properties.")
     args = parser.parse_args()
     
-    yaml_args = yaml.load(file(args.config))
+    yaml_args = yaml.load(open(args.config,'r'),yaml.CLoader)
     
     control_args = yaml_args['scene']
     cam_args = yaml_args['cameras']

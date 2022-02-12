@@ -109,7 +109,7 @@ from optv.parameters import ControlParams, TargetParams
 from util.openptv import simple_highpass
 
 yaml_file = sys.argv[1]
-yaml_args = yaml.load(file(yaml_file))
+yaml_args = yaml.load(open(yaml_file,'r'),yaml.CLoader)
 
 control_args = yaml_args['scene']
 cpar = ControlParams(1, **control_args)
