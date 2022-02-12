@@ -2,11 +2,11 @@
 
 # Form implementation generated from reading ui file 'cam_calib_base.ui'
 #
-# Created by: PyQt4 UI code generator 4.11.4
+# Created by: PyQt5 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -201,8 +201,8 @@ class Ui_CameraCalibration(object):
         self.btn_number.setText(_translate("CameraCalibration", "Match detrections to reference", None))
         self.btn_full_calib.setText(_translate("CameraCalibration", "Fine tuning", None))
 
-from .calib_panel import CalibPanel
-from .calib_pars import CalibParameters
+from calib_panel import CalibPanel
+from calib_pars import CalibParameters
 
 if __name__ == "__main__":
     import sys

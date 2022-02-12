@@ -68,7 +68,8 @@ setup(
         'mayavi',
         'imageio',
         'vtk',
-        'PyQt5'], # Maybe not SciPy. Need to check.
+        'PyQt5',
+        'scikit-image'],
 
     # Will list examples once I add them in.
     #package_data={

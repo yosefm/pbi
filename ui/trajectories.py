@@ -13,7 +13,7 @@ Created on Sun Oct  2 12:36:21 2016
 
 #import numpy as np
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 from .trajectories_base import Ui_TrajectoriesSelector
 from .cam_panel import CameraPanel
 

@@ -8,7 +8,7 @@ Created on Tue Aug  4 10:23:01 2015
 @author: yosef
 """
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 from .calib_pars_base import Ui_calibPars
 
 import numpy as np

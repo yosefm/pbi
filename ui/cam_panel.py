@@ -5,7 +5,7 @@ Created on Sun Jul 19 14:07:11 2015
 @author: yosef
 """
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 import numpy as np, matplotlib.pyplot as pl
 
 from optv.calibration import Calibration

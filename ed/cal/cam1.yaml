@@ -1,13 +1,13 @@
 
 target:
-    image: ed/cal/cam0.tif 
+    image: ed/cal/cam1.tif 
     number: 0
-    ori_file: ed/cal/cam0.tif.ori
-    addpar_file: ed/cal/cam0.tif.addpar
-    known_points: ed/cal/small_target_cam0.txt
+    ori_file: ed/cal/cam1.tif.ori
+    addpar_file: ed/cal/cam1.tif.addpar
+    known_points: ed/cal/small_target_cam1.txt
     manual_detection_points: [ 1, 5, 36, 40 ]
-    manual_detection_file: ed/cal/cam0_man_ori.dat
-    glass_vec: [ 0., 0., -50. ]
+    manual_detection_file: ed/cal/cam1_man_ori.dat
+    glass_vec: [ 50., 0., 0. ]
 
 scene:
     flags: hp, headers

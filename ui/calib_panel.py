@@ -8,10 +8,10 @@ Created on Wed Mar 29 13:03:43 2017
 @author: yosef
 """
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 import numpy as np
 
-from .cam_panel import CameraPanel
+from cam_panel import CameraPanel
 
 from optv.orientation import external_calibration, full_calibration
 from optv.imgcoord import image_coordinates

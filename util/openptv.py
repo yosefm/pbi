@@ -98,7 +98,7 @@ def read_scene_config(fname):
         if 'ori_file' in cam_spec:
             cam_spec.setdefault('addpar_file', None)
             cal = Calibration()
-            cal.from_file(cam_spec['ori_file'], cam_spec['addpar_file'])
+            cal.from_file(cam_spec['ori_file'].encode(), cam_spec['addpar_file'].encode())
             cam_spec['calib'] = cal
     
     return yaml_args, cam_args, cpar

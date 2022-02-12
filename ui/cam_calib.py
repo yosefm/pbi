@@ -7,8 +7,8 @@ Created on Mon Jul 20 09:46:14 2015
 
 import numpy as np
 
-from PyQt4 import QtGui
-from .cam_calib_base import Ui_CameraCalibration
+from PyQt5 import QtGui
+from cam_calib_base import Ui_CameraCalibration
 
 from optv.calibration import Calibration
 from optv.parameters import ControlParams, TargetParams
