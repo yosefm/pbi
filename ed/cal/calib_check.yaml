@@ -3,18 +3,22 @@ cameras:
   - image: ed/cal/cam0.tif
     ori_file: ed/cal/cam0.tif.ori
     addpar_file: ed/cal/cam0.tif.addpar
+    known_points: ed/cal/small_target_cam0.txt
 
   - image: ed/cal/cam1.tif
     ori_file: ed/cal/cam1.tif.ori
     addpar_file: ed/cal/cam1.tif.addpar
+    known_points: ed/cal/small_target_cam1.txt
 
   - image: ed/cal/cam2.tif
     ori_file: ed/cal/cam2.tif.ori
     addpar_file: ed/cal/cam2.tif.addpar
+    known_points: ed/cal/small_target_cam2.txt
 
   - image: ed/cal/cam3.tif
     ori_file: ed/cal/cam3.tif.ori
     addpar_file: ed/cal/cam3.tif.addpar
+    known_points: ed/cal/small_target_cam3.txt
 
     
 detection:
