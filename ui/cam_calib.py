@@ -44,7 +44,7 @@ class SingleCameraCalibration(QtWidgets.QWidget, Ui_CameraCalibration):
         
         # Reference points preprocessing:
         self._cp = np.loadtxt(known_points, usecols=(1,2,3))
-        self._match_manual = np.zeros(len(self._cp), dtype=np.bool)
+        self._match_manual = np.zeros(len(self._cp), dtype=bool)
         self._match_manual[np.r_[manual_detection_numbers] - 1] = True
         
         # Signal/slot routing table:
