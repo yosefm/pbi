@@ -104,7 +104,9 @@ class SingleCameraCalibration(QtWidgets.QWidget, Ui_CameraCalibration):
     
     def save_calibration(self):
         self.calpars.calibration().write(
-            str(self.txt_ori.text()), str(self.txt_addpar.text()))
+            str(self.txt_ori.text()).encode(), 
+            str(self.txt_addpar.text()).encode()
+            )
     
     def reproject_points(self, cal=None):
         if self.show_project.isChecked():
