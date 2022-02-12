@@ -72,4 +72,3 @@ dependencies:
     - traitsui==7.2.1
     - vtk==9.1.0
     - wcwidth==0.2.5
-prefix: C:\Users\alex\miniconda3\envs\pbi
