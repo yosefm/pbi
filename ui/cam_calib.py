@@ -7,23 +7,23 @@ Created on Mon Jul 20 09:46:14 2015
 
 import numpy as np
 
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets  
 from cam_calib_base import Ui_CameraCalibration
 
 from optv.calibration import Calibration
 from optv.parameters import ControlParams, TargetParams
 
-class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
+class SingleCameraCalibration(QtWidgets.QWidget, Ui_CameraCalibration):
     def __init__(self, control_args, cam, ori, addpar, man_file, known_points,
                  manual_detection_numbers, detection_args, tune_flags=[]):
-        QtGui.QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
         self.setupUi(self)
         
         self._man = man_file
 
         # Generate OpenPTV configuration objects:
         cal = Calibration()
-        cal.from_file(ori, addpar)
+        cal.from_file(ori.encode(), addpar.encode())
         
         control_args.setdefault('cams', 1)
         control = ControlParams(**control_args)
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     cal_args = yaml_args['target']
     scene_args = yaml_args['scene']
     
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     
     cal_args.setdefault('detection_par_file', None)
     conf_args = (scene_args, cal_args['number'], 

@@ -8,13 +8,13 @@ Created on Tue Aug  4 10:23:01 2015
 @author: yosef
 """
 
-from PyQt5 import QtCore, QtGui
-from .calib_pars_base import Ui_calibPars
+from PyQt5 import QtCore, QtGui, QtWidgets
+from calib_pars_base import Ui_calibPars
 
 import numpy as np
 from optv.calibration import Calibration
 
-class CalibParameters(QtGui.QWidget, Ui_calibPars):
+class CalibParameters(QtWidgets.QWidget, Ui_calibPars):
     pos_changed = QtCore.pyqtSignal(np.ndarray, name="positionChanged")
     ang_changed = QtCore.pyqtSignal(np.ndarray, name="orientationChanged")
     primary_point_changed = QtCore.pyqtSignal(np.ndarray, name="primaryPointChanged")
@@ -22,7 +22,7 @@ class CalibParameters(QtGui.QWidget, Ui_calibPars):
     cal_changed = QtCore.pyqtSignal(Calibration, name="calibrationChanged")
     
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.setupUi(self)
     
     def set_calibration_obj(self, cal_obj):
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     def print_angs():
         print((cal.get_angles()))
     
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     window = CalibParameters()
     window.set_calibration_obj(cal)
     window.pos_changed.connect(lambda x: print_pos())

@@ -13,13 +13,13 @@ from optv.calibration import Calibration
 from .scene_window_base import Ui_Scene
 from .epi_panel import CamPanelEpi
 
-class SceneWindow(QtGui.QWidget, Ui_Scene):
+class SceneWindow(QtWidgets.Qwidget, Ui_Scene):
     """
     Holds 4 CamPanelEpi panels in a grid, and coordinates the drawing of 
     epipolar lines from a point selected in one camera on all other cameras.
     """
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.Qwidget.__init__(self, parent)
         self.setupUi(self)
                 
         # Switchboard:
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     control_args = yaml_args['scene']
     yaml_args.setdefault('detection_params', "parameters/targ_rec.par")
     
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     window = SceneWindow()
     
     #br = window._scene.itemsBoundingRect()

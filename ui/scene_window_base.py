@@ -16,18 +16,18 @@ except AttributeError:
         return s
 
 try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
+    _encoding = QtWidgets.QApplication.UnicodeUTF8
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+        return QtWidgets.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+        return QtWidgets.QApplication.translate(context, text, disambig)
 
 class Ui_Scene(object):
     def setupUi(self, Scene):
         Scene.setObjectName(_fromUtf8("Scene"))
         Scene.resize(718, 652)
-        self.gridLayout = QtGui.QGridLayout(Scene)
+        self.gridLayout = QtWidgets.QGridLayout(Scene)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.cam1 = CamPanelEpi(Scene)
         self.cam1.setObjectName(_fromUtf8("cam1"))
@@ -52,8 +52,8 @@ from .epi_panel import CamPanelEpi
 
 if __name__ == "__main__":
     import sys
-    app = QtGui.QApplication(sys.argv)
-    Scene = QtGui.QWidget()
+    app = QtWidgets.QApplication(sys.argv)
+    Scene = QtWidgets.Qwidget()
     ui = Ui_Scene()
     ui.setupUi(Scene)
     Scene.show()

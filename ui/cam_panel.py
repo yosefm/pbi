@@ -5,7 +5,7 @@ Created on Sun Jul 19 14:07:11 2015
 @author: yosef
 """
 
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np, matplotlib.pyplot as pl
 
 from optv.calibration import Calibration
@@ -89,17 +89,17 @@ class PatchSet(object):
         Sets a consistent visibility on all patches and subpatches.
         """
         for patch in self._patches:
-            if isinstance(patch, QtGui.QGraphicsItem):
+            if isinstance(patch, QtWidgets.QGraphicsItem):
                 patch.setVisible(vis)
             else: # assume sequence
                 for subpatch in patch:
                     subpatch.setVisible(vis)
     
-class CameraPanel(QtGui.QGraphicsView):
+class CameraPanel(QtWidgets.QGraphicsView):
     cal_changed = QtCore.pyqtSignal(Calibration, name="calibrationChanged")
     
     def __init__(self, parent=None):
-        QtGui.QGraphicsView.__init__(self, parent)
+        QtWidgets.QGraphicsView.__init__(self, parent)
     
     def add_patchset(self, name, props=[]):
         self._patch_sets[name] = PatchSet(props)
@@ -108,7 +108,7 @@ class CameraPanel(QtGui.QGraphicsView):
         pset = self._patch_sets[name]
         for pnum in range(len(pset)):
             patch = pset.pop()
-            if isinstance(patch, QtGui.QGraphicsItem):
+            if isinstance(patch, QtWidgets.QGraphicsItem):
                 patch = [patch]
             for subpatch in patch:
                 self._scene.removeItem(subpatch)
@@ -181,7 +181,7 @@ class CameraPanel(QtGui.QGraphicsView):
         image_name - path to background image.
         hp_vis - whether the highpass version is visible or the original.
         """
-        self._scene = QtGui.QGraphicsScene(self)
+        self._scene = QtWidgets.QGraphicsScene(self)
         
         # Vanilla image:
         self._orig_img = pl.imread(image_name)
@@ -350,7 +350,7 @@ if __name__ == "__main__":
     parser.add_argument('cam', type=int, help="Camera number")
     args = parser.parse_args()
     
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     window = CameraPanel(args.par_file, args.cam)
     
     #br = window._scene.itemsBoundingRect()

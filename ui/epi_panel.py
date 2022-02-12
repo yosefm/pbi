@@ -151,7 +151,7 @@ class CamPanelEpi(CameraPanel):
 if __name__ == "__main__":
     import sys
     
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     window = CamPanelEpi()
     
     cal = Calibration()

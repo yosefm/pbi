@@ -22,13 +22,13 @@ from optv.transforms import convert_arr_metric_to_pixel
 from flowtracks.scene import Scene
 from flowtracks.io import save_particles_table
 
-class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
+class TrajectoriesWindow(QtWidgets.Qwidget, Ui_TrajectoriesSelector):
     """
     Shows trajectories in a 4-camera grid, and coordinates the selection and
     highlighting activities.
     """
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.Qwidget.__init__(self, parent)
         self.setupUi(self)
         
         self._traj_cache = {}
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     cals = [ca['calib'] for ca in cam_args]
     imgs = [ca['image'] for ca in cam_args]
     
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     window = TrajectoriesWindow()
     
     window.setGeometry(100, 50, 1200, 900)
