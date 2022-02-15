@@ -1,11 +1,11 @@
 
 target:
-    image: ed/cal/cam1.tif 
+    image: ed/cal/cam3.tif 
     number: 1
     ori_file: ed/cal/cam1.tif.ori
     addpar_file: ed/cal/cam1.tif.addpar
     known_points: ed/cal/flat_target.txt
-    manual_detection_points: [ 1, 8, 50, 55 ]
+    manual_detection_points: [ 1, 8, 57, 64 ]
     manual_detection_file: ed/cal/cam1_man_ori.dat
     glass_vec: [ 0., 0., 0.0 ]
 
