@@ -118,6 +118,7 @@ class CamPanelEpi(CameraPanel):
             self._cpar, self._vpar)
         
         pen = QtGui.QPen(QtGui.QColor(self._epi_colours[cam_id]))
+        pen.setWidth(5)
         rad = 3
         for pt in range(len(pts) - 1):
             self._scene.addEllipse(pts[pt,0] - rad, pts[pt,1] - rad, 
