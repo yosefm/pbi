@@ -166,7 +166,7 @@ class CalibPanel(CameraPanel):
                 "many as fixed points")
         
         sorted_targs = match_detection_to_ref(self._cal, cal_points, 
-            self._targets, self._cpar)
+            self._targets, self._cpar, eps=51)
         self.set_targets(sorted_targs)
         
         self.clear_patchset('projected')
@@ -233,11 +233,15 @@ class CalibPanel(CameraPanel):
         scale = 5000
         pen = QtGui.QPen(QtGui.QColor("red"))
         
+        print(residuals)
+        print(targ_ix)
+
         for r, t in zip(residuals, targ_ix):
-            pos = targs[t].pos()
-            rpos = pos + r*scale
-            self._patch_sets['resids'].push(self._scene.addLine(
-                pos[0], pos[1], rpos[0], rpos[1], pen=pen))
+            if t > -999: 
+                pos = targs[t].pos()
+                rpos = pos + r*scale
+                self._patch_sets['resids'].push(self._scene.addLine(
+                    pos[0], pos[1], rpos[0], rpos[1], pen=pen))
         
         self.cal_changed.emit(self.calibration())
     
