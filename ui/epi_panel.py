@@ -114,7 +114,6 @@ class CamPanelEpi(CameraPanel):
         a (num_points,2) array with pixel coordinates of point along the 
             epipolar curve.
         """
-        print("inside draw_epipolar_curve", self.cam_id, self.calibration)
         pts = epipolar_curve(point, origin_cam, self._cal, num_points,
             self._cpar, self._vpar)
         
