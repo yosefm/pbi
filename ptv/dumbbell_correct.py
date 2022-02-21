@@ -152,6 +152,6 @@ if __name__ == "__main__":
                 # Make sure 'minimize' didn't play around:
                 calibs[cam].set_pos(x[0,0])
                 calibs[cam].set_angles(x[0,1])
-                calibs[cam].write(cal_args[cam]['ori_file'], 
-                    cal_args[cam]['addpar_file'])
+                calibs[cam].write(cal_args[cam]['ori_file'].encode(), 
+                    cal_args[cam]['addpar_file'].encode())
                 x = x[1:]
