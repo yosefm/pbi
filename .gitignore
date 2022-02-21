@@ -10,3 +10,4 @@ ed/img/*
 *.bck
 ed/tmp/*
 tracer/*
+.vscode/launch.json

@@ -8,8 +8,8 @@ Derives from the CamPanel used for calibration.
 
 import numpy as np
 
-from PyQt5 import QtCore, QtGui
-from .cam_panel import CameraPanel
+from PyQt5 import QtCore, QtGui, QtWidgets
+from cam_panel import CameraPanel
 from optv.calibration import Calibration
 from optv.parameters import VolumeParams, ControlParams
 from optv.epipolar import epipolar_curve
@@ -114,6 +114,7 @@ class CamPanelEpi(CameraPanel):
         a (num_points,2) array with pixel coordinates of point along the 
             epipolar curve.
         """
+        print("inside draw_epipolar_curve", self.cam_id, self.calibration)
         pts = epipolar_curve(point, origin_cam, self._cal, num_points,
             self._cpar, self._vpar)
         

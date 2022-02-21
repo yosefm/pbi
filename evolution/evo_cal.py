@@ -179,7 +179,7 @@ for sol in init_sols:
 fits = np.array(fits)
 print(fits)
 
-signal.signal(signal.SIGTSTP, show_current)
+# signal.signal(signal.SIGTSTP, show_current)
 
 mutation_chance = 0.05
 niche_size = len(bounds) / 2.
