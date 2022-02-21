@@ -12,6 +12,7 @@ Created on Tue Dec 15 13:39:40 2015
 # These readers should go in a nice module, but I wait on Max to finish the 
 # proper bindings.
 
+import os
 from optv.orientation import dumbbell_target_func
 from optv.parameters import ControlParams
 
@@ -100,6 +101,7 @@ if __name__ == "__main__":
     for cam in range(len(cal_args)):
         for frame in range(num_frames):
             targ_file = yaml_args['template'] % (cam)
+            print(os.path.abspath(targ_file))
             targs = read_targets(targ_file, yaml_args['first'] + frame)
             
             for tix, targ in enumerate(targs):
@@ -107,7 +109,7 @@ if __name__ == "__main__":
     
     all_targs = np.array([convert_arr_pixel_to_metric(np.array(targs), cpar) \
         for targs in all_targs])
-    assert(all_targs.shape[1] == 4 and all_targs.shape[2] == 2)
+    assert(all_targs.shape[1] == len(cal_args) and all_targs.shape[2] == 2)
     
     # Generate initial guess vector and bounds for optimization:
     num_active = np.sum(active)
@@ -126,7 +128,7 @@ if __name__ == "__main__":
     
     # Test optimizer-ready target function:
     print("Initial values (1 row per camera, pos, then angle):")
-    print(calib_vec.reshape(4,-1))
+    print(calib_vec.reshape(len(cal_args),-1))
     print("Current target function (to minimize):", end=' ')
     print(calib_convergence(calib_vec, all_targs, calibs, active, cpar,
         db_length, db_weight))
@@ -134,10 +136,10 @@ if __name__ == "__main__":
     # Optimization:
     res = minimize(calib_convergence, calib_vec, 
                    args=(all_targs, calibs, active, cpar, db_length, db_weight),
-                   tol=1, options={'maxiter': 500})
+                   tol=1, options={'maxiter': 1000})
     
     print("Result of minimize:")
-    print(res.x.reshape(4,-1))
+    print(res.x.reshape(len(cal_args),-1))
     print("Success:", res.success, res.message)
     print("Final target function:", end=' ')
     print(calib_convergence(res.x, all_targs, calibs, active, cpar,
