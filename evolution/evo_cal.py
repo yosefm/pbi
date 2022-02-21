@@ -12,6 +12,7 @@ import numpy as np, matplotlib.pyplot as pl
 import numpy.random as rnd
 from matplotlib import cm
 
+import inspect
 from optv.imgcoord import image_coordinates
 from optv.transforms import convert_arr_metric_to_pixel
 from optv.segmentation import target_recognition
@@ -128,44 +129,46 @@ targs = np.array([t.pos() for t in tarr])
 
 pop_size = 2500
 #bounds = [(100., 200.), (-120, 0), (-150, -400), (-1, 0), (-1, 0), (-0.1, 0.1)]
-#bounds = [(100., 200.), (-120, 0), (150, 400), (np.pi - 1, np.pi + 1), (-1, 0), (-0.1, 0.1)]
+# bounds = [(-20., 20.), (-20, 20), (100, 400), (-0.1, 0.1), (-0.1, 0.1), (-0.1, 0.1)]
 ##bounds = [(100., 200.), (-120, 0), (-150, -400), (-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi)]
-if cam == 0:
-    bounds = [(-20.,20.), (-20.,20.), # offset
-              (210.,280.), # R
-              (-0., 0.6), (-0.6, 0.), (-0.5, 0.5), # angles
-              (-2., 2.), (-2., 2.), (60, 100), # primary point
-              (-4e-5, 4e-5), (-2e-5, 2e-5), (-1e-5, 1e-5), # radial distortion
-              (-1e-5, 1e-5), (-1e-5, 1e-5) # decentering
+# if cam == 0:
+bounds = [(-20.,20.), (-10.,30.), # offset
+            (100.,150.), # R
+            (-0.6, 0.6), (-0.6, 0.6), (-0.5, 0.5), # angles
+            (-2., 2.), (-2., 2.), (60, 100), # primary point
+            (-4e-5, 4e-5), (-2e-5, 2e-5), (-1e-5, 1e-5), # radial distortion
+            (-1e-5, 1e-5), (-1e-5, 1e-5) # decentering
     ]
-    cal_points = np.loadtxt(calblock_name)[:,1:]
-elif cam == 1:
-    bounds = [(-20.,20.), (-20.,20.), # offset
-              (210.,300.), # R
-              (-0., 0.6), (-0., 0.6), (-0.5, 0.5), # angles
-              (-0.5, 0.5), (-0.5, 0.5), (60, 100), # primary point
-              (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
-              (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
-    ]
-    cal_points = np.loadtxt(calblock_name)[:,1:]
-elif cam == 2:
-    bounds = [(-100.,100.), (-100.,100.), # offset
-              (210.,420.), # R
-              (-0.6, 0.), (-0.6, 0.), (-0.5, 0.5), # angles
-              (-2., 2.), (-2., 2.), (60, 100), # primary point
-              (-1e-3, 1e-3), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
-              (-1e-3, 1e-3), (-1e-3, 1e-3) # decentering
-    ]
-    cal_points = np.loadtxt(calblock_name)[:,1:]
-elif cam == 3:
-    bounds = [(-50.,50.), (-50.,50.), # offset
-              (200.,320.), # R
-              (-0.6, 0.), (-0., 0.6), (-0.5, 0.5), # angles
-              (-2., 2.), (-2., 2.), (60, 100), # primary point
-              (-1e-5, 1e-5), (-1e-1, 1e-5), (-1e-5, 1e-5), # radial distortion
-              (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
-    ]
-    cal_points = np.loadtxt(calblock_name)[:,1:]
+#     cal_points = np.loadtxt(calblock_name)[:,1:]
+# elif cam == 1:
+#     bounds = [(-20.,20.), (-20.,20.), # offset
+#               (210.,300.), # R
+#               (-0., 0.6), (-0., 0.6), (-0.5, 0.5), # angles
+#               (-0.5, 0.5), (-0.5, 0.5), (60, 100), # primary point
+#               (-1e-5, 1e-5), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
+#               (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
+#     ]
+#     cal_points = np.loadtxt(calblock_name)[:,1:]
+# elif cam == 2:
+#     bounds = [(-100.,100.), (-100.,100.), # offset
+#               (210.,420.), # R
+#               (-0.6, 0.), (-0.6, 0.), (-0.5, 0.5), # angles
+#               (-2., 2.), (-2., 2.), (60, 100), # primary point
+#               (-1e-3, 1e-3), (-1e-5, 1e-5), (-1e-5, 1e-5), # radial distortion
+#               (-1e-3, 1e-3), (-1e-3, 1e-3) # decentering
+#     ]
+#     cal_points = np.loadtxt(calblock_name)[:,1:]
+# elif cam == 3:
+#     bounds = [(-50.,50.), (-50.,50.), # offset
+#               (200.,320.), # R
+#               (-0.6, 0.), (-0., 0.6), (-0.5, 0.5), # angles
+#               (-2., 2.), (-2., 2.), (60, 100), # primary point
+#               (-1e-5, 1e-5), (-1e-1, 1e-5), (-1e-5, 1e-5), # radial distortion
+#               (-1e-6, 1e-6), (-1e-6, 1e-6) # decentering
+#     ]
+#     cal_points = np.loadtxt(calblock_name)[:,1:]
+
+cal_points = np.loadtxt(calblock_name)[:,1:]
 
 ranges = np.r_[[(maxb - minb) for minb, maxb in bounds]]
 
@@ -192,6 +195,10 @@ for it in range(num_iters):
     if it % 500 == 0:
         print((fits.min(), fits.max()))
         print((niche_size, niche_penalty))
+
+    if it % 10000 == 0:
+        print(it)
+        show_current(0, inspect.currentframe())
     
     # Check if Ctrl-C event happened during previous iteration:
     if wrap_it_up:
