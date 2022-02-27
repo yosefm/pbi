@@ -132,9 +132,9 @@ pop_size = 2500
 # bounds = [(-20., 20.), (-20, 20), (100, 400), (-0.1, 0.1), (-0.1, 0.1), (-0.1, 0.1)]
 ##bounds = [(100., 200.), (-120, 0), (-150, -400), (-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi)]
 # if cam == 0:
-bounds = [(-20.,20.), (-10.,30.), # offset
-            (100.,150.), # R
-            (-0.6, 0.6), (-0.6, 0.6), (-0.5, 0.5), # angles
+bounds = [(-200.,0.), (-30.,30.), # offset
+            (-30.,30.), # R
+            (-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi), # angles
             (-2., 2.), (-2., 2.), (60, 100), # primary point
             (-4e-5, 4e-5), (-2e-5, 2e-5), (-1e-5, 1e-5), # radial distortion
             (-1e-5, 1e-5), (-1e-5, 1e-5) # decentering
@@ -196,7 +196,7 @@ for it in range(num_iters):
         print((fits.min(), fits.max()))
         print((niche_size, niche_penalty))
 
-    if it % 10000 == 0:
+    if it % 100000 == 0:
         print(it)
         show_current(0, inspect.currentframe())
     
