@@ -1,0 +1,38 @@
+first: 292
+last: 391
+
+corres_file_base: scene12/inertials_trj/rt_is
+linkage_file_base: scene12/inertials_trj/ptv_is
+target_template: scene12/cam%d.
+
+initial:    
+    - image: cal_symf/cam1.tif 
+      ori_file: cal_symf/cam1.tif.ori
+      addpar_file: cal_symf/cam1.tif.addpar
+      free: yes
+
+    - image: cal_symf/cam2.tif 
+      ori_file: cal_symf/cam2.tif.ori
+      addpar_file: cal_symf/cam2.tif.addpar
+      free: yes
+
+    - image: cal_symf/cam3.tif 
+      ori_file: cal_symf/cam3.tif.ori
+      addpar_file: cal_symf/cam3.tif.addpar
+      free: yes
+
+    - image: cal_symf/cam4.tif 
+      ori_file: cal_symf/cam4.tif.ori
+      addpar_file: cal_symf/cam4.tif.addpar
+      free: yes 
+
+scene:
+    flags: hp, headers
+    image_size: [ 1280, 1024 ]
+    pixel_size: [ 0.014, 0.014 ]
+
+    # Multimedia parameters:
+    cam_side_n: 1  # air
+    object_side_n: 1.33  # perspex
+    wall_ns: [ 1.43 ]
+    wall_thicks: [ 5 ]
