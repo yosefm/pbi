@@ -46,7 +46,7 @@ class SceneWindow(QtWidgets.QWidget, Ui_Scene):
         
         for cam_num, cam_dict, cam_panel in zip(cam_nums, image_dicts, cam_panels):
             cal = Calibration()
-            cal.from_file(cam_dict['ori_file'], cam_dict['addpar_file'])
+            cal.from_file(cam_dict['ori_file'].encode(), cam_dict['addpar_file'].encode())
             
             if 'peak_threshold' in cam_dict:
                 det_pars['peak_threshold'] = cam_dict['peak_threshold']

@@ -7,8 +7,7 @@ Derives from the CamPanel used for calibration.
 """
 
 import numpy as np
-
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from cam_panel import CameraPanel
 from optv.calibration import Calibration
 from optv.parameters import VolumeParams, ControlParams
@@ -118,6 +117,7 @@ class CamPanelEpi(CameraPanel):
             self._cpar, self._vpar)
         
         pen = QtGui.QPen(QtGui.QColor(self._epi_colours[cam_id]))
+        pen.setWidth(5)
         rad = 3
         for pt in range(len(pts) - 1):
             self._scene.addEllipse(pts[pt,0] - rad, pts[pt,1] - rad, 

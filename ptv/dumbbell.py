@@ -18,6 +18,7 @@ Author: Yosef Meller.
 import numpy as np
 from scipy import signal
 from math import floor, ceil, sqrt
+import os
 
 import matplotlib.pyplot as pl, matplotlib.cm as cm
 from matplotlib.widgets import  RectangleSelector
@@ -152,7 +153,10 @@ def process_image(image_path, templates, targets_path, targets_frame,
         rects[1] if rects is not None else None)
     record_target(targs[1], 1, templates[1], pos)
     
+    # Alex: on windows provide full path
+    # print(os.path.abspath(targets_path))
     targs.write(targets_path.encode(), targets_frame)
+    
 
 def process_frame(image_tmpl, templates, targets_tmpl, frame_num, cam_count,
     rects=None):

@@ -14,7 +14,7 @@ Created on Sun Jan 31 13:42:18 2016
 if __name__ == "__main__":
     import argparse, yaml, numpy as np
     
-    from calib import full_calibration
+    from optv.orientation import full_calibration
     from optv.parameters import ControlParams
     
     from optv.tracking_framebuf import TargetArray, Frame
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     
     for cam_data in cal_args:
         cl = Calibration()
-        cl.from_file(cam_data['ori_file'], cam_data['addpar_file'])
+        cl.from_file(cam_data['ori_file'].encode(), cam_data['addpar_file'].encode())
         
         if cam_data['free']:
             active.append(len(calibs))
@@ -48,11 +48,15 @@ if __name__ == "__main__":
     
     scene_args = yaml_args['scene']
     num_cams = len(cal_args)
+    # print(f'Number of cameras is {num_cams}')
     scene_args['cams'] = num_cams
     cpar = ControlParams(**scene_args)
+    # print(f' and from cpar is {cpar.get_num_cams()}')
     
-    targ_files = [yaml_args['target_template'] % c for c in \
-        range(1, num_cams + 1)]
+    targ_files = [yaml_args['target_template'].encode() % c for c in \
+        range(num_cams)]
+
+    print(targ_files)
 
     # Iterate over frames, loading the big lists of 3D positions and 
     # respective detections.
@@ -61,8 +65,8 @@ if __name__ == "__main__":
     for frm_num in range(yaml_args['first'], yaml_args['last'] + 1, 
                           yaml_args['skip']):
         frame = Frame(cpar.get_num_cams(), 
-            corres_file_base=yaml_args['corres_file_base'], 
-            linkage_file_base=yaml_args['linkage_file_base'],
+            corres_file_base=yaml_args['corres_file_base'].encode(), 
+            linkage_file_base=yaml_args['linkage_file_base'].encode(),
             target_file_base=targ_files, frame_num=frm_num)
             
         all_known.append(frame.positions())
@@ -88,7 +92,7 @@ if __name__ == "__main__":
             targ.set_pnr(tix)
             targ.set_pos(used_detects[tix])
         
-        residuals, _ = full_calibration(calibs[cam], used_known, targs, cpar)
+        residuals = full_calibration(calibs[cam], used_known, targs, cpar)
         
         if args.dry_run:
             print(("Camera %d" % (cam + 1)))
@@ -102,6 +106,6 @@ if __name__ == "__main__":
                 ori = args.output % (cam + 1) + '.ori'
                 distort = args.output % (cam + 1) + '.addpar'
             
-            calibs[cam].write(ori, distort)
+            calibs[cam].write(ori.encode(), distort.encode())
             
 # I don't like the dangling end of Python scripts... Do I have OCD?

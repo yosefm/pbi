@@ -53,7 +53,7 @@ from epi_panel import CamPanelEpi
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    Scene = QtWidgets.Qwidget()
+    Scene = QtWidgets.QWidget()
     ui = Ui_Scene()
     ui.setupUi(Scene)
     Scene.show()

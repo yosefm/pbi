@@ -1,13 +1,13 @@
 
 target:
-    image: ed/cal/cam1.tif 
+    image: ed/cal/cam3.tif 
     number: 1
     ori_file: ed/cal/cam1.tif.ori
     addpar_file: ed/cal/cam1.tif.addpar
-    known_points: ed/cal/small_target_cam1.txt
-    manual_detection_points: [ 1, 5, 36, 40 ]
+    known_points: ed/cal/flat_target.txt
+    manual_detection_points: [ 1, 8, 57, 64 ]
     manual_detection_file: ed/cal/cam1_man_ori.dat
-    glass_vec: [ 50., 0., 0. ]
+    glass_vec: [ 0., 0., 0.0 ]
 
 scene:
     flags: hp, headers
@@ -16,8 +16,8 @@ scene:
     
     # Multimedia parameters:
     cam_side_n: 1  # air
-    object_side_n: 1.335  # water
-    wall_ns: [ 1.43 ] # perspex
+    object_side_n: 1.  # water
+    wall_ns: [ 1. ] # perspex
     wall_thicks: [ 6 ]
 
 detection:
