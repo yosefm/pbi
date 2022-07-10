@@ -11,3 +11,4 @@ ed/img/*
 ed/tmp/*
 tracer/*
 .vscode/launch.json
+.DS_Store
