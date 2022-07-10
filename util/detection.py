@@ -6,7 +6,7 @@ Created on Wed Jan  6 15:46:13 2016
 
 @author: yosef
 """
-from itertools import izip
+
 from optv.tracking_framebuf import TargetArray, CORRES_NONE
 
 import numpy as np
@@ -27,7 +27,7 @@ def targetize(detects, approx_size, sumg=10):
     targs = TargetArray(len(detects))
     
     tnum = 0
-    for t, pos in izip(targs, detects):
+    for t, pos in zip(targs, detects):
         t.set_pos(pos)
         t.set_pnr(tnum)
         t.set_sum_grey_value(sumg) # whatever

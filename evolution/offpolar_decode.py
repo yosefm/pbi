@@ -39,7 +39,7 @@ if __name__ == "__main__":
     offpol = np.array([float(p) for p in offpol_str.split()
         ]).reshape(num_cams, -1)
     
-    for cam in xrange(num_cams):
+    for cam in range(num_cams):
         angs = offpol[cam,3:6]
         inters = np.zeros(3)
         inters[:2] = offpol[cam,:2]
@@ -49,16 +49,16 @@ if __name__ == "__main__":
         rad = offpol[cam,9:12]
         decent = offpol[cam,12:14]
         
-        print
-        print "camera %d" % (cam + 1)
-        print "----------"
-        print "pos/ang:"
-        print "%.8f %.8f %.8f" % tuple(pos)
-        print "%.8f %.8f %.8f" % tuple(angs)
-        print
-        print "internal: %.8f %.8f %.8f" % tuple(prim)
-        print "radial distortion: %.8f %.8f %.8f" % tuple(rad)
-        print "decentering: %.8f %.8f" % tuple(decent)
+        print()
+        print(("camera %d" % (cam + 1)))
+        print("----------")
+        print("pos/ang:")
+        print(("%.8f %.8f %.8f" % tuple(pos)))
+        print(("%.8f %.8f %.8f" % tuple(angs)))
+        print()
+        print(("internal: %.8f %.8f %.8f" % tuple(prim)))
+        print(("radial distortion: %.8f %.8f %.8f" % tuple(rad)))
+        print(("decentering: %.8f %.8f" % tuple(decent)))
         
         if args.output is not None:
             glass_vec = np.r_[0., 0.,  118.]

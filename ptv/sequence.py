@@ -7,7 +7,7 @@ Created on Wed Jun  1 10:35:25 2016
 @author: yosef
 """
 import numpy as np, matplotlib.pyplot as pl
-from parallel_runner import PoolWorker
+from util.parallel_runner import PoolWorker
 
 from optv.correspondences import correspondences, MatchedCoords
 from optv.segmentation import target_recognition
@@ -46,7 +46,7 @@ class FrameProc(PoolWorker):
         """
         Perform the processing.
         """
-        print "processing frame %d" % frame
+        print(("processing frame %d" % frame))
         
         detections = []
         corrected = []
@@ -76,20 +76,20 @@ class FrameProc(PoolWorker):
             detections, corrected, self._cals, self._vpar, self._cpar)
         
         # Save targets only after they've been modified:
-        for cix in xrange(len(self._cams)):
+        for cix in range(len(self._cams)):
             detections[cix].write(
                 seq['targets_template'].format(cam=cix + 1), frame)
         
         if self._report:
-            print "Frame " + str(frame) + " had " \
-            + repr([s.shape[1] for s in sets]) + " correspondences."
+            print(("Frame " + str(frame) + " had " \
+            + repr([s.shape[1] for s in sets]) + " correspondences."))
         
         # Distinction between quad/trip irrelevant here.
         sets = np.concatenate(sets, axis=1)
         corresp = np.concatenate(corresp, axis=1)
         
         flat = np.array([corrected[cix].get_by_pnrs(corresp[cix]) \
-            for cix in xrange(len(self._cals))])
+            for cix in range(len(self._cals))])
         pos, rcm = point_positions(
             flat.transpose(1,0,2), self._cpar, self._cals)
         
@@ -105,8 +105,9 @@ class FrameProc(PoolWorker):
             
 if __name__ == "__main__":
     import argparse, time
-    from multiprocessing import Pipe, Queue
-    from Queue import Empty
+    from multiprocessing import Pipe
+    from util.methods import Queue
+    from queue import Empty
     
     from util.openptv import read_scene_config
     from optv.parameters import VolumeParams
@@ -138,7 +139,7 @@ if __name__ == "__main__":
     tasks = Queue(num_procs*2)
     w = []
     
-    for p in xrange(num_procs):
+    for p in range(num_procs):
         pside, cside = Pipe()
         t = FrameProc(
             tasks, cside, results,cals, cam_args, seq, yaml_args['targ_par'], 
@@ -149,7 +150,7 @@ if __name__ == "__main__":
         time.sleep(0.5)
     
     got_res = 0
-    for frame in xrange(seq['first'], seq['last'] + 1):
+    for frame in range(seq['first'], seq['last'] + 1):
         while tasks.qsize() > num_procs * 1.5:
             time.sleep(0.005)
         tasks.put(frame)

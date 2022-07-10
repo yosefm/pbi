@@ -70,7 +70,7 @@ if __name__ == "__main__":
     parser.add_argument('--clobber', action='store_true', default=False,
         help="Replace original ori files with result.")
     cli_args = parser.parse_args()
-    yaml_args = yaml.load(file(cli_args.config))
+    yaml_args = yaml.load(open(cli_args.config,'r'),yaml.CLoader)
     
     # Generate initial-guess calibration objects. These get overwritten by
     # the optimizer's target function.
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     
     for cam_data in cal_args:
         cl = Calibration()
-        cl.from_file(cam_data['ori_file'], cam_data['addpar_file'])
+        cl.from_file(cam_data['ori_file'].encode(), cam_data['addpar_file'].encode())
         
         calibs.append(cl)
         active.append(cam_data['free'])
@@ -95,11 +95,11 @@ if __name__ == "__main__":
     # Soak up all targets to memory. Not perfect but how OpenPTV wants it.
     # Well, use a limited clip, ok?
     num_frames = yaml_args['last'] - yaml_args['first'] + 1
-    all_targs = [[] for pt in xrange(num_frames*2)] # 2 targets per fram
+    all_targs = [[] for pt in range(num_frames*2)] # 2 targets per fram
     
-    for cam in xrange(len(cal_args)):
-        for frame in xrange(num_frames):
-            targ_file = yaml_args['template'] % (cam + 1)
+    for cam in range(len(cal_args)):
+        for frame in range(num_frames):
+            targ_file = yaml_args['template'] % (cam)
             targs = read_targets(targ_file, yaml_args['first'] + frame)
             
             for tix, targ in enumerate(targs):
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     num_active = np.sum(active)
     calib_vec = np.empty((num_active, 2, 3))
     active_ptr = 0
-    for cam in xrange(len(cal_args)):
+    for cam in range(len(cal_args)):
         if active[cam]:
             calib_vec[active_ptr,0] = calibs[cam].get_pos()
             calib_vec[active_ptr,1] = calibs[cam].get_angles()
@@ -125,27 +125,27 @@ if __name__ == "__main__":
     calib_vec = calib_vec.flatten()
     
     # Test optimizer-ready target function:
-    print "Initial values (1 row per camera, pos, then angle):"
-    print calib_vec.reshape(4,-1)
-    print "Current target function (to minimize):",
-    print calib_convergence(calib_vec, all_targs, calibs, active, cpar,
-        db_length, db_weight)
+    print("Initial values (1 row per camera, pos, then angle):")
+    print(calib_vec.reshape(4,-1))
+    print("Current target function (to minimize):", end=' ')
+    print(calib_convergence(calib_vec, all_targs, calibs, active, cpar,
+        db_length, db_weight))
     
     # Optimization:
     res = minimize(calib_convergence, calib_vec, 
                    args=(all_targs, calibs, active, cpar, db_length, db_weight),
                    tol=1, options={'maxiter': 500})
     
-    print "Result of minimize:"
-    print res.x.reshape(4,-1)
-    print "Success:", res.success, res.message
-    print "Final target function:",
-    print calib_convergence(res.x, all_targs, calibs, active, cpar,
-        db_length, db_weight)
+    print("Result of minimize:")
+    print(res.x.reshape(4,-1))
+    print("Success:", res.success, res.message)
+    print("Final target function:", end=' ')
+    print(calib_convergence(res.x, all_targs, calibs, active, cpar,
+        db_length, db_weight))
     
     if cli_args.clobber:
         x = res.x.reshape(-1,2,3)
-        for cam in xrange(len(cal_args)):
+        for cam in range(len(cal_args)):
             if active[cam]:
                 # Make sure 'minimize' didn't play around:
                 calibs[cam].set_pos(x[0,0])

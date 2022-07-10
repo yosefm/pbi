@@ -1,0 +1,54 @@
+
+cameras:
+  - image: ed/cal/cam0.tif
+    ori_file: ed/cal/cam0.tif.ori
+    addpar_file: ed/cal/cam0.tif.addpar
+    known_points: ed/cal/small_target_cam0.txt
+
+  - image: ed/cal/cam1.tif
+    ori_file: ed/cal/cam1.tif.ori
+    addpar_file: ed/cal/cam1.tif.addpar
+    known_points: ed/cal/small_target_cam1.txt
+
+  - image: ed/cal/cam2.tif
+    ori_file: ed/cal/cam2.tif.ori
+    addpar_file: ed/cal/cam2.tif.addpar
+    known_points: ed/cal/small_target_cam2.txt
+
+  - image: ed/cal/cam3.tif
+    ori_file: ed/cal/cam3.tif.ori
+    addpar_file: ed/cal/cam3.tif.addpar
+    known_points: ed/cal/small_target_cam3.txt
+
+    
+detection:
+    discont: 500
+    gvthresh: [10, 10, 10, 10]
+    pixel_count_bounds: [100, 2000]
+    xsize_bounds: [10, 100]
+    ysize_bounds: [10, 100]
+    min_sum_grey: 200
+    cross_size: 2
+
+scene:
+    flags: hp, headers
+    image_size: [ 2304, 1720 ]
+    pixel_size: [ 0.012, 0.012 ]
+    
+    # Multimedia parameters:
+    cam_side_n: 1  # air
+    object_side_n: 1.335  # water
+    wall_ns: [ 1.43 ] # perspex
+    wall_thicks: [ 6 ]
+
+correspondences:
+    x_span: [-30., 30.]
+    z_spans:
+        - [-20., 5.]
+        - [-20., 5.]
+    pixels_x: 0.02
+    pixels_y: 0.02
+    pixels_tot: 0.02
+    ref_gray: 0.02
+    min_correlation: 33
+    epipolar_band: 0.1   # mm on sensor plane.

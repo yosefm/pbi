@@ -22,7 +22,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     with open(args.config) as f:
-        yaml_conf = yaml.load(f)
+        yaml_conf = yaml.load(f, yaml.CLoader)
     seq_cfg = yaml_conf['sequence']
     
     cals = []
@@ -63,7 +63,7 @@ if __name__ == "__main__":
             os.mkdir(seq_cfg['targets_copy'])
         
         for base in img_base:
-            for frm in xrange(seq_cfg['first'], seq_cfg['last']):
+            for frm in range(seq_cfg['first'], seq_cfg['last']):
                 src = base + str(frm) + '_targets'
                 shutil.copy(src, seq_cfg['targets_copy'])
     

@@ -7,23 +7,23 @@ Created on Mon Jul 20 09:46:14 2015
 
 import numpy as np
 
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets  
 from cam_calib_base import Ui_CameraCalibration
 
 from optv.calibration import Calibration
 from optv.parameters import ControlParams, TargetParams
 
-class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
+class SingleCameraCalibration(QtWidgets.QWidget, Ui_CameraCalibration):
     def __init__(self, control_args, cam, ori, addpar, man_file, known_points,
                  manual_detection_numbers, detection_args, tune_flags=[]):
-        QtGui.QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
         self.setupUi(self)
         
         self._man = man_file
 
         # Generate OpenPTV configuration objects:
         cal = Calibration()
-        cal.from_file(ori, addpar)
+        cal.from_file(ori.encode(), addpar.encode())
         
         control_args.setdefault('cams', 1)
         control = ControlParams(**control_args)
@@ -44,7 +44,7 @@ class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
         
         # Reference points preprocessing:
         self._cp = np.loadtxt(known_points, usecols=(1,2,3))
-        self._match_manual = np.zeros(len(self._cp), dtype=np.bool)
+        self._match_manual = np.zeros(len(self._cp), dtype=bool)
         self._match_manual[np.r_[manual_detection_numbers] - 1] = True
         
         # Signal/slot routing table:
@@ -104,7 +104,9 @@ class SingleCameraCalibration(QtGui.QWidget, Ui_CameraCalibration):
     
     def save_calibration(self):
         self.calpars.calibration().write(
-            str(self.txt_ori.text()), str(self.txt_addpar.text()))
+            str(self.txt_ori.text()).encode(), 
+            str(self.txt_addpar.text()).encode()
+            )
     
     def reproject_points(self, cal=None):
         if self.show_project.isChecked():
@@ -127,11 +129,11 @@ if __name__ == "__main__":
         help="Path to calibration parameters of this camera (yaml)")
     args = parser.parse_args()
     
-    yaml_args = yaml.load(file(args.calib_par_file))
+    yaml_args = yaml.load(open(args.calib_par_file,'r'), yaml.CLoader)
     cal_args = yaml_args['target']
     scene_args = yaml_args['scene']
     
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     
     cal_args.setdefault('detection_par_file', None)
     conf_args = (scene_args, cal_args['number'], 
@@ -139,7 +141,7 @@ if __name__ == "__main__":
         cal_args['manual_detection_file'], cal_args['known_points'],
         cal_args['manual_detection_points'], yaml_args['detection'],
         yaml_args['default_free_vars'])
-    if cal_args.has_key('detection_method'):
+    if 'detection_method' in cal_args:
         conf_args = conf_args + (cal_args['detection_method'], )
         
     window = SingleCameraCalibration(*conf_args)

@@ -1,0 +1,33 @@
+
+target:
+    image: ed/cal/cam0.tif 
+    number: 0
+    ori_file: ed/cal/cam0.tif.ori
+    addpar_file: ed/cal/cam0.tif.addpar
+    known_points: ed/cal/small_target_cam0.txt
+    manual_detection_points: [ 1, 5, 36, 40 ]
+    manual_detection_file: ed/cal/cam0_man_ori.dat
+    glass_vec: [ 0., 0., -50. ]
+
+scene:
+    flags: hp, headers
+    image_size: [ 2304, 1720 ]
+    pixel_size: [ 0.012, 0.012 ]
+    
+    # Multimedia parameters:
+    cam_side_n: 1  # air
+    object_side_n: 1.335  # water
+    wall_ns: [ 1.43 ] # perspex
+    wall_thicks: [ 6 ]
+
+detection:
+    discont: 500
+    gvthresh: [10, 10, 10, 10]
+    pixel_count_bounds: [100, 2000]
+    xsize_bounds: [10, 100]
+    ysize_bounds: [10, 100]
+    min_sum_grey: 200
+    cross_size: 2
+
+default_free_vars: [ cc ]
+

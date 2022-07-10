@@ -26,7 +26,7 @@ if __name__ == "__main__":
         help="Rewrite the fix/crd files renumbered and stop.")
     args = parser.parse_args()
     
-    yaml_args = yaml.load(file(args.config))
+    yaml_args = yaml.load(open(args.config,'r'),yaml.CLoader)
     
     # Load fix/crd, renumbering along the way.
     all_known = []
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     all_detected = np.vstack(all_detected)
     
     targs = TargetArray(len(all_detected))
-    for tix in xrange(len(all_detected)):
+    for tix in range(len(all_detected)):
         targ = targs[tix]
         det = all_detected[tix]
         

@@ -47,7 +47,7 @@ def fitness(solution, detections, glass_vecs, vpar, cpar,
     solution = solution.reshape(num_cams, -1)
     
     cals = []
-    for cam in xrange(num_cams):
+    for cam in range(num_cams):
         # Breakdown of of agregate solution vector:
         inters = np.zeros(3)
         inters[:2] = solution[cam, :2]
@@ -92,14 +92,14 @@ class FitnessProc(PoolWorker):
         return (prm, f)
 
 def show_current(fits, pos):
-    print
-    print "************************"
-    print fits.min(), fits.max()
-    print 
-    print "best solution:"
-    print pop[fits.argmax()]
-    print "************************"
-    print
+    print()
+    print("************************")
+    print((fits.min(), fits.max()))
+    print() 
+    print("best solution:")
+    print((pop[fits.argmax()]))
+    print("************************")
+    print()
 
 if __name__ == "__main__":
     import argparse, yaml, time
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     from util.openptv import simple_highpass
     
     from multiprocessing import Pipe, Queue, cpu_count
-    from Queue import Empty
+    from queue import Empty
     
     parser = argparse.ArgumentParser()
     parser.add_argument('config', 
@@ -119,7 +119,7 @@ if __name__ == "__main__":
         help="Number of parallel processes.")
     args = parser.parse_args()
     
-    yaml_args = yaml.load(file(args.config))
+    yaml_args = yaml.load(open(args.config,'r'),yaml.CLoader)
     
     control_args = yaml_args['scene']
     cam_args = yaml_args['cameras']
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     tasks = Queue(num_procs*2)
     w = []
     
-    for p in xrange(num_procs):
+    for p in range(num_procs):
         pside, cside = Pipe()
         t = FitnessProc(tasks, cside, results, 
             detections, glass_vecs, vpar, cpar)
@@ -178,7 +178,7 @@ if __name__ == "__main__":
         if wrap_it_up:
             break
         
-        print sols_tried
+        print(sols_tried)
         if sols_tried < pop_size:
             # feed a random solution to the queue:
             sol = [rnd.rand()*(maxb - minb) + minb for minb, maxb in bounds]
@@ -204,7 +204,7 @@ if __name__ == "__main__":
                     fits[sols_accepted] = f
                     
                     sols_accepted += 1
-                    print "accepted", sols_accepted
+                    print(("accepted", sols_accepted))
                     
                 else:
                     # Compete with others for insert:
@@ -221,7 +221,7 @@ if __name__ == "__main__":
         if sols_tried % 20 == 0:
             for p in w:
                 if not p[0].is_alive():
-                    print " *** respawn ***"
+                    print(" *** respawn ***")
                     p[0].join()
                     w.remove(p)
                     pside, cside = Pipe()
@@ -237,7 +237,7 @@ if __name__ == "__main__":
         time.sleep(0.005)
     
     show_current(fits, pop)
-    print fits
+    print(fits)
             
     for p in w:
         p[0].terminate()

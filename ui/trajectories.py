@@ -13,22 +13,22 @@ Created on Sun Oct  2 12:36:21 2016
 
 #import numpy as np
 
-from PyQt4 import QtCore, QtGui
-from trajectories_base import Ui_TrajectoriesSelector
-from cam_panel import CameraPanel
+from PyQt5 import QtCore, QtGui
+from .trajectories_base import Ui_TrajectoriesSelector
+from .cam_panel import CameraPanel
 
 from optv.imgcoord import image_coordinates
 from optv.transforms import convert_arr_metric_to_pixel
 from flowtracks.scene import Scene
 from flowtracks.io import save_particles_table
 
-class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
+class TrajectoriesWindow(QtWidgets.Qwidget, Ui_TrajectoriesSelector):
     """
     Shows trajectories in a 4-camera grid, and coordinates the selection and
     highlighting activities.
     """
     def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.Qwidget.__init__(self, parent)
         self.setupUi(self)
         
         self._traj_cache = {}
@@ -98,7 +98,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
         self._cpar = cpar
         
         cam_panels = self.findChildren(CameraPanel)
-        cam_nums = range(len(cam_panels))
+        cam_nums = list(range(len(cam_panels)))
         
         for num, cal, img, panel in zip(cam_nums, cals, im_names, cam_panels):
             panel.reset(cpar, num, cal=cal, target_pars=targ_par)
@@ -113,7 +113,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
             self.add_trajectory(trajid)
     
     def mark_all_trajects(self):
-        for trj_ix in xrange(self.traj_table.rowCount()):
+        for trj_ix in range(self.traj_table.rowCount()):
             length = self.traj_table.item(trj_ix, 2).data(
                 QtCore.Qt.DisplayRole).toInt()[0] 
             
@@ -122,7 +122,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
                 self.traj_table.item(trj_ix, 0).setCheckState(QtCore.Qt.Checked)
     
     def mark_no_trajects(self):
-        for trj_ix in xrange(self.traj_table.rowCount()):
+        for trj_ix in range(self.traj_table.rowCount()):
             length = self.traj_table.item(trj_ix, 2).data(
                 QtCore.Qt.DisplayRole).toInt()[0] 
             
@@ -131,7 +131,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
                 self.traj_table.item(trj_ix, 0).setCheckState(QtCore.Qt.Unchecked)
     
     def invert_marks(self):
-        for trj_ix in xrange(self.traj_table.rowCount()):
+        for trj_ix in range(self.traj_table.rowCount()):
             if self.traj_table.item(trj_ix, 0).checkState() == QtCore.Qt.Unchecked:
                 self.traj_table.item(trj_ix, 0).setCheckState(
                     QtCore.Qt.Checked)
@@ -178,7 +178,7 @@ class TrajectoriesWindow(QtGui.QWidget, Ui_TrajectoriesSelector):
         """
         Iterates over trajectories, yielding the selected ones.
         """
-        for trj_ix in xrange(self.traj_table.rowCount()):
+        for trj_ix in range(self.traj_table.rowCount()):
             chk_item = self.traj_table.item(trj_ix, 0)
             
             if chk_item.checkState() == QtCore.Qt.Checked:
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     cals = [ca['calib'] for ca in cam_args]
     imgs = [ca['image'] for ca in cam_args]
     
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     window = TrajectoriesWindow()
     
     window.setGeometry(100, 50, 1200, 900)

@@ -5,7 +5,7 @@ Created on Sun Jul 19 14:07:11 2015
 @author: yosef
 """
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np, matplotlib.pyplot as pl
 
 from optv.calibration import Calibration
@@ -58,12 +58,12 @@ class PatchSet(object):
         """
         self._patches.append(patch)
         
-        for prop in self._props.keys():
+        for prop in list(self._props.keys()):
             if prop not in props:
                 raise ValueError(
                     "Required property %s not given for patch." % prop)
         
-        for prop, val in props.iteritems():
+        for prop, val in list(props.items()):
             if prop not in self._props:
                 raise ValueError("Unrecognized property %s for patch." % prop)
             self._props[prop].append(val)
@@ -74,7 +74,7 @@ class PatchSet(object):
         the scene could remove it.
         """
         ret = self._patches.pop()
-        for prop in self._props.itervalues():
+        for prop in list(self._props.values()):
             prop.pop()
         return ret
     
@@ -89,32 +89,32 @@ class PatchSet(object):
         Sets a consistent visibility on all patches and subpatches.
         """
         for patch in self._patches:
-            if isinstance(patch, QtGui.QGraphicsItem):
+            if isinstance(patch, QtWidgets.QGraphicsItem):
                 patch.setVisible(vis)
             else: # assume sequence
                 for subpatch in patch:
                     subpatch.setVisible(vis)
     
-class CameraPanel(QtGui.QGraphicsView):
+class CameraPanel(QtWidgets.QGraphicsView):
     cal_changed = QtCore.pyqtSignal(Calibration, name="calibrationChanged")
     
     def __init__(self, parent=None):
-        QtGui.QGraphicsView.__init__(self, parent)
+        QtWidgets.QGraphicsView.__init__(self, parent)
     
     def add_patchset(self, name, props=[]):
         self._patch_sets[name] = PatchSet(props)
     
     def clear_patchset(self, name):
         pset = self._patch_sets[name]
-        for pnum in xrange(len(pset)):
+        for pnum in range(len(pset)):
             patch = pset.pop()
-            if isinstance(patch, QtGui.QGraphicsItem):
+            if isinstance(patch, QtWidgets.QGraphicsItem):
                 patch = [patch]
             for subpatch in patch:
                 self._scene.removeItem(subpatch)
     
     def clear_patches(self):
-        for pset in self._patch_sets.iterkeys():
+        for pset in list(self._patch_sets.keys()):
             self.clear_patchset(pset)
     
     def reset(self, control, cam_num, cal=None,
@@ -181,7 +181,7 @@ class CameraPanel(QtGui.QGraphicsView):
         image_name - path to background image.
         hp_vis - whether the highpass version is visible or the original.
         """
-        self._scene = QtGui.QGraphicsScene(self)
+        self._scene = QtWidgets.QGraphicsScene(self)
         
         # Vanilla image:
         self._orig_img = pl.imread(image_name)
@@ -243,14 +243,29 @@ class CameraPanel(QtGui.QGraphicsView):
         """
         Implements zooming/unzooming.
         """
-        numDegrees = event.delta() / 8;
-        numSteps = numDegrees / 15;
+        # delta = event.angleDelta().y()/2880
+        # self._zoom += (delta and delta // abs(delta))
+        # self.scale(self._zoom, self._zoom)
+
+        factor = 1.1
+        delta = event.angleDelta().y()/2880
+        if delta < 0:
+            factor = 0.9
+        view_pos = event.pos()
+        scene_pos = self.mapToScene(view_pos)
+        self.centerOn(scene_pos)
+        self.scale(factor, factor)
+        delta = self.mapToScene(view_pos) - self.mapToScene(self.viewport().rect().center())
+        self.centerOn(scene_pos - delta)        
+
+        # numDegrees = event.angleDelta().y() / 8
+        # numSteps = numDegrees / 15
         
-        self.scale(1./self._zoom, 1./self._zoom)
-        self._zoom += (numSteps * 0.1)
-        self.scale(self._zoom, self._zoom)
+        # self.scale(1./self._zoom, 1./self._zoom)
+        # self._zoom += (numSteps * 0.1)
+        # self.scale(self._zoom, self._zoom)
         
-        event.accept()
+        # event.accept()
     
     def set_targets(self, targs):
         """
@@ -350,7 +365,7 @@ if __name__ == "__main__":
     parser.add_argument('cam', type=int, help="Camera number")
     args = parser.parse_args()
     
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     window = CameraPanel(args.par_file, args.cam)
     
     #br = window._scene.itemsBoundingRect()

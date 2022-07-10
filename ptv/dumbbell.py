@@ -28,10 +28,10 @@ def onselect(eclick, erelease, im, rects, tiles):
     xs = np.sort(np.r_[eclick.xdata, erelease.xdata])
     ys = np.sort(np.r_[eclick.ydata, erelease.ydata])
     rects.append(np.c_[xs, ys].flatten())
-    print rects[-1]
+    print((rects[-1]))
     
-    ybounds = map(int, [floor(ys[0]), ceil(ys[1])])
-    xbounds = map(int, [floor(xs[0]), ceil(xs[1])])
+    ybounds = list(map(int, [floor(ys[0]), ceil(ys[1])]))
+    xbounds = list(map(int, [floor(xs[0]), ceil(xs[1])]))
     tiles.append(im[ybounds[0]:ybounds[1], xbounds[0]:xbounds[1]].copy())
     if len(rects) == 2:
         pl.close()
@@ -41,7 +41,7 @@ def mark_image(image_path):
     tiles = []
 
     pl.figure()
-    ax = pl.subplot('111')
+    ax = pl.subplot(1,1,1)
 
     im = pl.imread(image_path)
     ax.imshow(im, cmap=cm.gray)
@@ -49,7 +49,7 @@ def mark_image(image_path):
     
     sel_style = {'edgecolor': 'red', 'fill': False}
     rs = RectangleSelector(ax, lambda clk, rls: onselect(clk, rls, im, rects, tiles), 
-        rectprops=sel_style)
+        props=sel_style)
     rs.set_active(True)
 
     pl.show()
@@ -152,7 +152,7 @@ def process_image(image_path, templates, targets_path, targets_frame,
         rects[1] if rects is not None else None)
     record_target(targs[1], 1, templates[1], pos)
     
-    targs.write(targets_path, targets_frame)
+    targs.write(targets_path.encode(), targets_frame)
 
 def process_frame(image_tmpl, templates, targets_tmpl, frame_num, cam_count,
     rects=None):
@@ -173,9 +173,9 @@ def process_frame(image_tmpl, templates, targets_tmpl, frame_num, cam_count,
         arrays each 2x2, [[left, top], [right, bottom]]. If None (default), 
         matches whole image.
     """
-    for cam in xrange(cam_count):
-        tpath = targets_tmpl % (cam + 1)
-        ipath = image_tmpl % (cam + 1, frame_num)
+    for cam in range(cam_count):
+        tpath = targets_tmpl % (cam)
+        ipath = image_tmpl % (cam, frame_num)
         process_image(ipath, templates[cam], tpath, frame_num,
             rects[cam] if rects is not None else None)
 
@@ -194,15 +194,15 @@ def show_frame(image_tmpl, targets_tmpl, frame_num, cam_count):
     cam_count - number of cameras in scene.
     """
     pl.figure(figsize=(15,15))
-    vert_plots = floor(sqrt(cam_count))
-    horz_plots = cam_count/vert_plots
+    vert_plots = int(floor(sqrt(cam_count)))
+    horz_plots = int(cam_count/vert_plots)
     
-    for cam in xrange(cam_count):
+    for cam in range(cam_count):
         pl.subplot(vert_plots, horz_plots, cam + 1)
-        im = pl.imread(image_tmpl % (cam + 1, frame_num))
+        im = pl.imread(image_tmpl % (cam, frame_num))
         pl.imshow(im, cmap=cm.gray)
         
-        targs = read_targets(targets_tmpl % (cam + 1), frame_num)
+        targs = read_targets(targets_tmpl % (cam), frame_num)
         pl.plot(targs[0].pos()[0], targs[0].pos()[1], 'ro')
         pl.plot(targs[1].pos()[0], targs[1].pos()[1], 'ro')
     
@@ -243,16 +243,17 @@ if __name__ == "__main__":
     if args.positions is not None:
         premarks = np.loadtxt(args.positions)
         
-    for cam in xrange(args.cams):
+    for cam in range(args.cams):
         if args.positions is None:
-            r, t = mark_image(args.tmpl % (cam + 1, args.first))
+            r, t = mark_image(args.tmpl % (cam, args.first))
+            # r, t = mark_image(args.tmpl % (cam, args.first))
         else:
-            r = premarks[2*cam:2*(cam + 1)]
+            r = premarks[2*cam:2*(cam)]
             r[:,:2] = np.floor(r[:,:2])
             r[:,2:] = np.floor(r[:,2:])
             r= np.int_(r)
             
-            image = pl.imread(args.tmpl % (cam + 1, args.first))
+            image = pl.imread(args.tmpl % (cam, args.first))
             t = [
                 image[r[0,1]:r[0,3], r[0,0]:r[0,2]],
                 image[r[1,1]:r[1,3], r[1,0]:r[1,2]],
@@ -274,7 +275,7 @@ if __name__ == "__main__":
     # Start one thread per frame. Keep a maximum of live threads and add one
     # new job each time a job is finished.
     active = []
-    for frame in xrange(args.first, args.last + 1):
+    for frame in range(args.first, args.last + 1):
         arglist = (args.tmpl, templates, args.targ_tmpl, frame, args.cams)
         if not args.full:
             arglist = arglist + (rects,)

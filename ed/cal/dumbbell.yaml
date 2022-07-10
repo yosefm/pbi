@@ -1,0 +1,39 @@
+
+first: 1001
+last: 1100
+template: ./ed/tmp/targs_%d.
+
+# Measured from Mark's dumbbell, R.I.P.
+dumbbell:
+    length: 20
+    weight: 0.5
+
+# Set 'free' to some false value (like 'no') if you want the calibration
+# for any camera to remain constant while the other cameras move.
+initial:    
+    - ori_file: ed/cal/cam0.tif.ori
+      addpar_file: ed/cal/cam0.tif.addpar
+      free: yes
+
+    - ori_file: ed/cal/cam1.tif.ori
+      addpar_file: ed/cal/cam1.tif.addpar
+      free: yes
+
+    - ori_file: ed/cal/cam2.tif.ori
+      addpar_file: ed/cal/cam2.tif.addpar
+      free: yes
+
+    - ori_file: ed/cal/cam3.tif.ori
+      addpar_file: ed/cal/cam3.tif.addpar
+      free: yes 
+
+scene:
+    flags: hp, headers
+    image_size: [ 2304, 1720 ]
+    pixel_size: [ 0.012, 0.012 ]
+
+    # Multimedia parameters:
+    cam_side_n: 1  # air
+    object_side_n: 1.33  # perspex
+    wall_ns: [ 1.43 ]
+    wall_thicks: [ 6 ]

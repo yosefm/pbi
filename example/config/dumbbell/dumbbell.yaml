@@ -1,7 +1,7 @@
 
 first: 200
 last: 281
-template: data/dumbbell/targs_%d.
+template: ./tmp/targs_%d.
 
 # Measured from Mark's dumbbell, R.I.P.
 dumbbell:
