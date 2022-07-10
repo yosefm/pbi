@@ -8,12 +8,12 @@ Created on Wed Sep  9 11:10:21 2015
 """
 import numpy as np
 
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from optv.calibration import Calibration
-from .scene_window_base import Ui_Scene
-from .epi_panel import CamPanelEpi
+from scene_window_base import Ui_Scene
+from epi_panel import CamPanelEpi
 
-class SceneWindow(QtWidgets.Qwidget, Ui_Scene):
+class SceneWindow(QtWidgets.QWidget, Ui_Scene):
     """
     Holds 4 CamPanelEpi panels in a grid, and coordinates the drawing of 
     epipolar lines from a point selected in one camera on all other cameras.

@@ -7,7 +7,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -48,7 +48,7 @@ class Ui_Scene(object):
     def retranslateUi(self, Scene):
         Scene.setWindowTitle(_translate("Scene", "Form", None))
 
-from .epi_panel import CamPanelEpi
+from epi_panel import CamPanelEpi
 
 if __name__ == "__main__":
     import sys
