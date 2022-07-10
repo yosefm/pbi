@@ -19,7 +19,7 @@ class SceneWindow(QtWidgets.QWidget, Ui_Scene):
     epipolar lines from a point selected in one camera on all other cameras.
     """
     def __init__(self, parent=None):
-        QtWidgets.Qwidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.setupUi(self)
                 
         # Switchboard:
